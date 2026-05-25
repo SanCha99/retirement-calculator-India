@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Retirement Corpus Calculator v4.2</title>
+<title>Retirement Corpus Calculator v4.2.1</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@400;500;600&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -99,6 +99,55 @@ input[type=range].c3::-webkit-slider-thumb{background:var(--teal);box-shadow:0 0
 .abadge{font-size:12px;font-weight:700;padding:3px 12px;border-radius:20px;background:rgba(94,231,183,.10);border:1px solid rgba(94,231,183,.40);color:var(--teal);}
 .tax-display{font-size:12px;color:var(--mu);}
 .tax-val{font-size:13px;font-weight:700;color:var(--gold);margin-left:4px;}
+
+/* INFO TOOLTIP */
+.info-tip{
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:16px;height:16px;
+  margin-left:4px;
+  border-radius:50%;
+  background:rgba(240,180,41,.15);
+  color:var(--gold);
+  font-size:10px;
+  font-weight:700;
+  cursor:help;
+  vertical-align:middle;
+  outline:none;
+  font-family:'DM Sans',sans-serif;
+}
+.info-tip:hover,.info-tip:focus{background:rgba(240,180,41,.30);}
+.tip-bubble{
+  position:absolute;
+  bottom:calc(100% + 8px);
+  right:0;
+  width:280px;
+  padding:10px 12px;
+  background:#1A2335;
+  border:1px solid var(--gold);
+  border-radius:8px;
+  color:var(--tx);
+  font-size:11px;
+  font-weight:400;
+  line-height:1.6;
+  text-align:left;
+  letter-spacing:0;
+  opacity:0;
+  visibility:hidden;
+  transition:opacity .15s,visibility .15s;
+  z-index:100;
+  box-shadow:0 8px 24px rgba(0,0,0,.6);
+  pointer-events:none;
+}
+.tip-bubble strong{color:var(--gold);}
+.tip-bubble b{color:#E0E8F8;}
+.info-tip:hover .tip-bubble,
+.info-tip:focus .tip-bubble{opacity:1;visibility:visible;}
+@media(max-width:540px){
+  .tip-bubble{width:260px;right:-8px;}
+}
 .warn-msg{font-size:11px;color:var(--red);display:none;width:100%;}
 .warn-msg.show{display:block;}
 
@@ -240,7 +289,7 @@ footer{text-align:center;padding:24px 16px 20px;font-size:11px;color:#8A9BB0;bor
   <div class="cc-right">
     <div class="cc-stat">Monthly gross withdrawal: <span id="cc-gross">—</span></div>
     <div class="cc-stat">Blended return: <span id="cc-ret">—</span></div>
-    <div class="cc-stat">Annual tax paid: <span id="cc-tax">—</span></div>
+    <div class="cc-stat">Tax on withdrawal: <span id="cc-tax">—</span></div>
     <div id="cc-status"></div>
   </div>
 </div>
@@ -261,7 +310,17 @@ footer{text-align:center;padding:24px 16px 20px;font-size:11px;color:#8A9BB0;bor
   <div class="alloc-footer">
     <div class="alloc-total-lbl">Allocation total: <span class="abadge">100%</span></div>
     <div class="tax-display">
-      Effective tax rate: <span class="tax-val" id="eff-tax-val">—</span>
+      Portfolio tax efficiency: <span class="tax-val" id="eff-tax-val">—</span>
+      <span class="info-tip" tabindex="0" aria-label="Portfolio tax efficiency explanation">ⓘ
+        <span class="tip-bubble">
+          <strong>Portfolio tax efficiency</strong> is the weighted average effective tax rate
+          across all instruments in your allocation. Lower = more tax-efficient mix.<br><br>
+          MF SWP ~4.4%, PPF 0%, FD/SCSS ~20%, Pension ~8%, Rental ~14%.<br><br>
+          This rate is used inside the corpus calculation as the realistic tax burden on your
+          withdrawals — instead of progressive slab tax — because your portfolio mixes
+          taxable and tax-efficient instruments.
+        </span>
+      </span>
     </div>
     <div class="warn-msg" id="warn-msg"></div>
   </div>
@@ -300,6 +359,18 @@ footer{text-align:center;padding:24px 16px 20px;font-size:11px;color:#8A9BB0;bor
         <span style="color:var(--mu);font-size:11px;">tap to expand</span>
       </summary>
       <div style="margin-top:14px;font-size:12px;color:var(--mu);line-height:1.8;">
+        <strong style="color:var(--tx);">How tax is treated in this calculator:</strong>
+        <ul style="margin:8px 0 14px 18px;color:var(--mu);">
+          <li>The tool calculates corpus using the <strong>portfolio's blended effective tax rate</strong> — a weighted average of how each instrument is taxed, based on your allocation.</li>
+          <li>Each instrument has an indicative effective tax rate baked in:
+            MF SWP ~4.4% (only ~35% of redemption is gain, taxed at 12.5% LTCG),
+            PPF 0% (fully exempt), FD/SCSS ~20% (interest taxable at slab rate, assumes 20% slab),
+            Pension ~8% (partly taxable after commutation), Rental ~14% (after 30% std deduction at 20% slab).</li>
+          <li>For reference, the "Tax on withdrawal" card also shows the <strong>progressive slab tax</strong> — what you'd pay if all withdrawals were fully taxable (India new regime FY 2026-27 + 4% cess). This is shown only to help compare. The corpus calculation uses the portfolio rate, not the slab rate.</li>
+          <li>If your portfolio is fully in tax-efficient instruments (MF SWP, PPF), the calculator shows a lower corpus than a naive slab-based calculation would.</li>
+          <li>If your real income slab is higher than 20% (e.g. you have other taxable income), actual FD/SCSS tax burden will be higher than modelled.</li>
+        </ul>
+
         <strong style="color:var(--tx);">Modelling assumptions:</strong>
         <ul style="margin:8px 0 14px 18px;color:var(--mu);">
           <li>Inflation is treated as a <strong>single constant rate</strong> for the full retirement period (in reality it varies year to year)</li>
@@ -341,7 +412,7 @@ footer{text-align:center;padding:24px 16px 20px;font-size:11px;color:#8A9BB0;bor
 <footer>
   Tax computed under India new tax regime (FY 2026-27) including 4% health &amp; education cess.<br>
   Returns shown are nominal pre-tax estimates · Last updated for FY 2026-27 slabs.
-  <div class="fver">v4.2</div>
+  <div class="fver">v4.2.1</div>
 </footer>
 
 <script>
@@ -870,7 +941,24 @@ function updateCorpusCard(corpus,P,ret,rows){
   document.getElementById('cc-sub').textContent=modeNote;
   document.getElementById('cc-gross').textContent=fmt(P.moGross)+'/mo';
   document.getElementById('cc-ret').textContent=(ret*100).toFixed(1)+'% p.a.';
-  document.getElementById('cc-tax').textContent=fmt(Math.round(calcTax(P.annGross)))+'/yr ('+Math.round(calcTax(P.annGross)/P.annGross*100)+'%)';
+  /* Show portfolio tax (used in calc) AND slab tax (reference), with a tooltip explaining */
+  const portfolioTaxAmt = P.annGross - P.annNet;
+  const slabPct = (P.slabTaxPct*100).toFixed(1);
+  const portfolioPct = (P.portfolioTaxRate*100).toFixed(1);
+  document.getElementById('cc-tax').innerHTML =
+    fmt(Math.round(portfolioTaxAmt))+'/yr ('+portfolioPct+'%) ' +
+    '<span class="info-tip" tabindex="0" aria-label="Tax explanation">ⓘ' +
+      '<span class="tip-bubble">' +
+        '<strong>Two tax rates explained:</strong><br><br>' +
+        '<b>Portfolio tax rate ('+portfolioPct+'%)</b> — used in this corpus calculation. ' +
+        'It is the weighted average of how each instrument is taxed (MF SWP ~4.4%, FD ~20%, PPF 0%, etc.) ' +
+        'based on your allocation.<br><br>' +
+        '<b>Slab tax on this gross ('+slabPct+'%)</b> — what you would pay if all of this income came from one fully-taxable source ' +
+        '(progressive India new regime + 4% cess). Shown only for reference.<br><br>' +
+        'The two differ because your portfolio includes tax-efficient instruments. ' +
+        'The lower portfolio rate is the more accurate gross-up.' +
+      '</span>' +
+    '</span>';
   const statusEl=document.getElementById('cc-status');
   if(xi>=0){
     statusEl.innerHTML='<span class="status-pill status-warn">⚠ Exhausted in '+(P.retYear+xi)+'</span>';
@@ -890,10 +978,32 @@ function getP(){
   const ytr=Math.max(0,retYear-new Date().getFullYear());
   /* net monthly at retirement = today's income inflated to retirement year */
   const moNetAtRet=Math.round(incLakh*1e5*Math.pow(1+inf,ytr));
-  /* gross up for tax */
-  const annGross=grossUp(moNetAtRet*12);
-  const moGross=Math.round(annGross/12);
-  return{retYear,incLakh,years,inf,ytr,moNetAtRet,annGross,moGross};
+
+  /*
+    GROSS-UP CHOICE — v4.2.1
+    We use the portfolio's blended effective tax rate (T) to gross up,
+    not progressive slab tax. This reflects the actual mix of taxable
+    vs efficient instruments in the user's portfolio.
+       moGross × (1 - T) = moNet
+       → moGross = moNet / (1 - T)
+    The progressive slab tax is still computed separately and shown
+    as "Income tax on withdrawal" for transparency.
+  */
+  const T = blendTax();                            // portfolio blended tax rate
+  const annNet = moNetAtRet * 12;
+  const annGross = Math.round(annNet / Math.max(0.01, 1 - T));
+  const moGross = Math.round(annGross / 12);
+
+  /* slab tax shown for comparison only (not used in gross-up) */
+  const slabTaxAnnual = calcTax(annGross);
+  const slabTaxPct = annGross > 0 ? slabTaxAnnual / annGross : 0;
+
+  return {
+    retYear, incLakh, years, inf, ytr,
+    moNetAtRet, annNet, annGross, moGross,
+    portfolioTaxRate: T,
+    slabTaxAnnual, slabTaxPct,
+  };
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
