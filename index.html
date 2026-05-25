@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Retirement Corpus Calculator v4.1</title>
+<title>Retirement Corpus Calculator v4.2</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@400;500;600&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -81,6 +81,15 @@ input[type=range].c3::-webkit-slider-thumb{background:var(--teal);box-shadow:0 0
 .ar{display:flex;align-items:center;gap:6px;margin-top:8px;}
 .ar input[type=range]{height:3px;cursor:pointer;}
 .av{font-size:13px;font-weight:700;min-width:36px;text-align:right;}
+.amt-row{
+  margin-top:6px;
+  font-size:12px;
+  font-family:'DM Serif Display',serif;
+  font-weight:400;
+  text-align:right;
+  letter-spacing:.02em;
+}
+.ic.zero .amt-row{opacity:.4;}
 
 .scss-badge{display:inline-block;font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:8px;background:rgba(226,92,240,.15);color:#E29CF0;margin-top:4px;}
 
@@ -196,28 +205,22 @@ footer{text-align:center;padding:24px 16px 20px;font-size:11px;color:#8A9BB0;bor
       <div class="sr"><span class="sl">Years in retirement</span><span class="sv" id="v-lon">25<small>yrs</small></span></div>
       <input type="range" id="s-lon" class="c3" min="10" max="40" step="1" value="25">
     </div>
-    <div class="sg" style="margin-bottom:4px;">
+    <div class="sg" style="margin-bottom:14px;">
       <div class="sr"><span class="sl">India inflation (planning rate)</span><span class="sv" id="v-inf">5.0<small>%</small></span></div>
       <input type="range" id="s-inf" min="3" max="9" step="0.5" value="5">
     </div>
 
-    <div class="st" style="margin-top:16px;">Investment instruments &amp; allocation</div>
-    <p style="font-size:11px;color:var(--mu);margin-bottom:12px;">
-      Slide each instrument to your preferred allocation — all the way to 0% if you don't want it.
-      SCSS automatically receives whatever is left. Total always equals 100%.
-    </p>
-
-    <div class="igrid" id="igrid"></div>
-
-
-
-    <!-- ALLOC FOOTER: total + effective tax + warning -->
-    <div class="alloc-footer">
-      <div class="alloc-total-lbl">Allocation total: <span class="abadge">100%</span></div>
-      <div class="tax-display">
-        Effective tax rate: <span class="tax-val" id="eff-tax-val">—</span>
-      </div>
-      <div class="warn-msg" id="warn-msg">⚠ Cannot exceed 100% — SCSS is at 0%. Reduce another instrument first.</div>
+    <!-- WITHDRAWAL MODE — now inside the input card -->
+    <div class="sw-label">Withdrawal mode</div>
+    <div class="bsw" style="margin-bottom:6px;">
+      <button class="bsb on" id="btn-fix" onclick="setWmode('fix')">
+        Fixed amount
+        <small>Same rupee amount every month — purchasing power reduces over time</small>
+      </button>
+      <button class="bsb" id="btn-inf" onclick="setWmode('inf')">
+        Inflation-adjusted
+        <small>Withdrawal grows with inflation each year — your ₹ buys the same as today</small>
+      </button>
     </div>
 
     <button class="done-btn" onclick="closeInputs()">▲ Hide input details</button>
@@ -226,24 +229,7 @@ footer{text-align:center;padding:24px 16px 20px;font-size:11px;color:#8A9BB0;bor
 </div><!-- /input card -->
 
 <!-- ══════════════════════════════════
-     WITHDRAWAL MODE SWITCH
-══════════════════════════════════════ -->
-<div style="margin-bottom:12px;">
-  <div class="sw-label">Withdrawal mode</div>
-  <div class="bsw">
-    <button class="bsb on" id="btn-fix" onclick="setWmode('fix')">
-      Fixed amount
-      <small>Same rupee amount every month — purchasing power reduces over time</small>
-    </button>
-    <button class="bsb" id="btn-inf" onclick="setWmode('inf')">
-      Inflation-adjusted
-      <small>Withdrawal grows with inflation each year — your ₹ buys the same as today</small>
-    </button>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════
-     CORPUS REQUIRED CARD
+     CORPUS REQUIRED CARD — moved up here
 ══════════════════════════════════════ -->
 <div class="corpus-card" id="corpus-card">
   <div class="cc-left">
@@ -256,6 +242,28 @@ footer{text-align:center;padding:24px 16px 20px;font-size:11px;color:#8A9BB0;bor
     <div class="cc-stat">Blended return: <span id="cc-ret">—</span></div>
     <div class="cc-stat">Annual tax paid: <span id="cc-tax">—</span></div>
     <div id="cc-status"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     INSTRUMENTS & ALLOCATION — moved below corpus card
+══════════════════════════════════════ -->
+<div class="card">
+  <div class="st">Investment instruments &amp; allocation</div>
+  <p style="font-size:11px;color:var(--mu);margin-bottom:12px;">
+    Set your allocation for each instrument. Pension automatically absorbs the remainder
+    so total always equals 100%. SCSS is hard-capped at ₹30L (government limit).
+  </p>
+
+  <div class="igrid" id="igrid"></div>
+
+  <!-- ALLOC FOOTER: total + effective tax + warning -->
+  <div class="alloc-footer">
+    <div class="alloc-total-lbl">Allocation total: <span class="abadge">100%</span></div>
+    <div class="tax-display">
+      Effective tax rate: <span class="tax-val" id="eff-tax-val">—</span>
+    </div>
+    <div class="warn-msg" id="warn-msg"></div>
   </div>
 </div>
 
@@ -315,8 +323,9 @@ footer{text-align:center;padding:24px 16px 20px;font-size:11px;color:#8A9BB0;bor
         <strong style="color:var(--tx);">Instrument return assumptions (nominal, pre-tax, annual):</strong>
         <ul style="margin:8px 0 14px 18px;color:var(--mu);">
           <li>MF SWP equity/balanced: 8.5% &nbsp;·&nbsp; Bank FD (senior citizen): 7.0%</li>
-          <li>Pension/annuity: 6.0% &nbsp;·&nbsp; PPF/Debt MF: 7.2%</li>
-          <li>Rental yield (net): 3.5% &nbsp;·&nbsp; SCSS: 8.2% (govt guaranteed, ₹30L cap per person)</li>
+          <li>Pension/annuity: 6.0% (auto-holder — balances total to 100%)</li>
+          <li>PPF/Debt MF: 7.2% &nbsp;·&nbsp; Rental yield (net): 3.5%</li>
+          <li>SCSS: 8.2% (govt guaranteed, <strong>hard-capped at ₹30L per person</strong>)</li>
         </ul>
 
         <div style="margin-top:14px;padding:10px 12px;background:rgba(240,180,41,.07);border:1px solid rgba(240,180,41,.25);border-radius:6px;color:#FFD080;font-size:11px;">
@@ -332,7 +341,7 @@ footer{text-align:center;padding:24px 16px 20px;font-size:11px;color:#8A9BB0;bor
 <footer>
   Tax computed under India new tax regime (FY 2026-27) including 4% health &amp; education cess.<br>
   Returns shown are nominal pre-tax estimates · Last updated for FY 2026-27 slabs.
-  <div class="fver">v4.1</div>
+  <div class="fver">v4.2</div>
 </footer>
 
 <script>
@@ -355,14 +364,15 @@ footer{text-align:center;padding:24px 16px 20px;font-size:11px;color:#8A9BB0;bor
 const FREE_INST = [
   {id:'swp',  name:'MF SWP',    sub:'Equity / Balanced', ret:8.5, color:'#7B6FFF', taxRate:0.044, taxLbl:'Most efficient — LTCG 12.5% on gains only'},
   {id:'fd',   name:'Bank FD',   sub:'Senior citizen',    ret:7.0, color:'#4A9EFF', taxRate:0.20,  taxLbl:'Interest 100% taxable at slab rate'},
-  {id:'pen',  name:'Pension',   sub:'Annuity plan',      ret:6.0, color:'#F0B429', taxRate:0.08,  taxLbl:'Partly taxable — commutation exempt'},
+  {id:'scss', name:'SCSS',      sub:'Senior Citizens SS', ret:8.2, color:'#E25CF0', taxRate:0.20,  taxLbl:'Govt guaranteed · interest at slab rate',  hardCap:3000000},
   {id:'ppf',  name:'PPF/Debt',  sub:'Debt / Gilt MF',   ret:7.2, color:'#5EE7B7', taxRate:0.0,   taxLbl:'PPF fully tax-free'},
   {id:'rent', name:'Rental',    sub:'Property income',   ret:3.5, color:'#FF8C5A', taxRate:0.14,  taxLbl:'30% std deduction — 70% taxable'},
 ];
-const SCSS_INST = {id:'scss', ret:8.2, taxRate:0.20};
+/* Pension is the auto-holder — absorbs remainder so total = 100% */
+const HOLDER_INST = {id:'pen', name:'Pension', sub:'Annuity plan', ret:6.0, color:'#F0B429', taxRate:0.08, taxLbl:'Partly taxable — commutation exempt'};
 
 /* allocation state — each FREE instrument has an independent value 0–100 */
-let ALLOC = {swp:40, fd:25, pen:15, ppf:10, rent:0};
+let ALLOC = {swp:40, fd:25, scss:10, ppf:10, rent:0};
 let WMODE = 'fix';
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -371,7 +381,7 @@ let WMODE = 'fix';
 function freeTotal(){
   return FREE_INST.reduce((s,i)=>s+ALLOC[i.id],0);
 }
-function scssAlloc(){
+function holderAlloc(){
   return Math.max(0, 100 - freeTotal());
 }
 
@@ -424,19 +434,19 @@ function grossUp(net){
    Both weighted by allocation %
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 function blendRet(){
-  const scss=scssAlloc();
-  const tot=freeTotal()+scss; // always 100
+  const holder=holderAlloc();
+  const tot=freeTotal()+holder; // always 100
   if(!tot)return 0.07;
   let r=FREE_INST.reduce((s,i)=>s+(i.ret/100)*(ALLOC[i.id]/tot),0);
-  r+=( SCSS_INST.ret/100)*(scss/tot);
+  r+=( HOLDER_INST.ret/100)*(holder/tot);
   return r;
 }
 function blendTax(){
   /* weighted effective tax rate across all instruments */
-  const scss=scssAlloc();
+  const holder=holderAlloc();
   const tot=100;
   let t=FREE_INST.reduce((s,i)=>s+i.taxRate*(ALLOC[i.id]/tot),0);
-  t+=SCSS_INST.taxRate*(scss/tot);
+  t+=HOLDER_INST.taxRate*(holder/tot);
   return t;
 }
 
@@ -523,15 +533,24 @@ function buildGrid(){
   const g=document.getElementById('igrid');
   g.innerHTML='';
 
-  /* cards 1-5: free instruments with sliders */
+  const corpus = window.__currentCorpus || 0;
+
+  /* cards 1-5: free instruments with sliders. SCSS is one of them now. */
   FREE_INST.forEach(inst=>{
     const alloc=ALLOC[inst.id];
     const isZero=alloc===0;
+    const amount = corpus * alloc / 100;
     const d=document.createElement('div');
     d.id='ic-'+inst.id;
     d.className='ic'+(isZero?' zero':'');
     d.style.borderColor=isZero?'var(--bdr)':inst.color;
     d.style.background=isZero?'transparent':`color-mix(in srgb,${inst.color} 8%,transparent)`;
+
+    /* SCSS shows ₹30L cap label */
+    const capLbl = inst.hardCap
+      ? `<div style="font-size:9px;color:#E29CF0;margin-top:2px;">Cap: ₹30L (govt limit)</div>`
+      : '';
+
     d.innerHTML=`
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div><span class="idot" style="background:${inst.color}"></span><span class="iname">${inst.name}</span></div>
@@ -539,93 +558,140 @@ function buildGrid(){
       </div>
       <div class="isub">${inst.sub}</div>
       <div class="itax">${inst.taxLbl}</div>
+      ${capLbl}
       <div class="ar">
-        <input type="range" id="sl-${inst.id}" min="0" max="100" step="5"
+        <input type="range" id="sl-${inst.id}" min="0" max="100" step="1"
           value="${alloc}" style="flex:1;"
           oninput="handleSlider('${inst.id}',+this.value)">
         <span class="av" id="av-${inst.id}" style="color:${inst.color}">${alloc}%</span>
+      </div>
+      <div class="amt-row" id="amt-${inst.id}" style="color:${inst.color};">
+        ${fmt(amount)}
       </div>`;
     g.appendChild(d);
   });
 
-  /* card 6: SCSS — auto, no slider, updated in-place by updateScssCard() */
-  const scss=scssAlloc();
-  const isZeroS=scss===0;
+  /* card 6: PENSION — auto-holder, no slider */
+  const holder=holderAlloc();
+  const holderAmt = corpus * holder / 100;
+  const isZeroH=holder===0;
   const sc=document.createElement('div');
-  sc.id='scss-card';
-  sc.className='ic'+(isZeroS?' zero':'');
-  sc.style.borderColor=isZeroS?'var(--bdr)':'rgba(226,92,240,.50)';
-  sc.style.background=isZeroS?'transparent':'color-mix(in srgb,#E25CF0 8%,transparent)';
+  sc.id='holder-card';
+  sc.className='ic'+(isZeroH?' zero':'');
+  sc.style.borderColor=isZeroH?'var(--bdr)':'rgba(240,180,41,.50)';
+  sc.style.background=isZeroH?'transparent':'color-mix(in srgb,#F0B429 8%,transparent)';
   sc.innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:center;">
-      <div><span class="idot" style="background:#E25CF0"></span><span class="iname">SCSS</span></div>
-      <span style="font-size:11px;font-weight:700;color:#E25CF0">${SCSS_INST.ret}%</span>
+      <div><span class="idot" style="background:#F0B429"></span><span class="iname">${HOLDER_INST.name}</span></div>
+      <span style="font-size:11px;font-weight:700;color:#F0B429">${HOLDER_INST.ret}%</span>
     </div>
-    <div class="isub">Senior Citizens' SS</div>
-    <div class="itax">Govt guaranteed · auto-allocated</div>
+    <div class="isub">${HOLDER_INST.sub}</div>
+    <div class="itax">${HOLDER_INST.taxLbl}</div>
     <div style="margin-top:8px;display:flex;justify-content:flex-end;">
-      <span class="av" id="scss-pct" style="color:#E25CF0;font-size:15px;">${scss}%</span>
+      <span class="av" id="holder-pct" style="color:#F0B429;font-size:15px;">${holder}%</span>
     </div>
-    <div style="margin-top:4px;"><span class="scss-badge">Auto — balance to 100%</span></div>`;
+    <div class="amt-row" id="amt-holder" style="color:#F0B429;">
+      ${fmt(holderAmt)}
+    </div>
+    <div style="margin-top:4px;"><span class="scss-badge" style="background:rgba(240,180,41,.15);color:#F0C060;">Auto — balance to 100%</span></div>`;
   g.appendChild(sc);
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   UPDATE SCSS CARD IN-PLACE
-   Only touches the SCSS card's text and
-   styling — never touches the 5 free
-   slider cards, so no mid-drag destruction.
+   UPDATE CARD AMOUNTS IN-PLACE
+   Updates the absolute ₹ amount + holder %
+   on all 6 cards without rebuilding the
+   DOM (which would kill active slider drags).
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-function updateScssCard(){
-  const scss=scssAlloc();
-  const isZero=scss===0;
-  const card=document.getElementById('scss-card');
-  const pct=document.getElementById('scss-pct');
-  if(!card||!pct) return;
-  pct.textContent=scss+'%';
-  card.className='ic'+(isZero?' zero':'');
-  card.style.borderColor=isZero?'var(--bdr)':'rgba(226,92,240,.50)';
-  card.style.background=isZero?'transparent':'color-mix(in srgb,#E25CF0 8%,transparent)';
-  /* also update free card styling (zero dimming) without rebuilding */
+function updateAllCardAmounts(){
+  const corpus = window.__currentCorpus || 0;
+  const holder = holderAlloc();
+
+  /* update free cards: amount + zero-styling */
   FREE_INST.forEach(inst=>{
     const ic=document.getElementById('ic-'+inst.id);
-    if(!ic) return;
-    const isZ=ALLOC[inst.id]===0;
+    const amtEl=document.getElementById('amt-'+inst.id);
+    if(!ic||!amtEl) return;
+    const alloc=ALLOC[inst.id];
+    const isZ=alloc===0;
+    const amount = corpus * alloc / 100;
+    amtEl.textContent = fmt(amount);
     ic.className='ic'+(isZ?' zero':'');
     ic.style.borderColor=isZ?'var(--bdr)':inst.color;
     ic.style.background=isZ?'transparent':`color-mix(in srgb,${inst.color} 8%,transparent)`;
   });
+
+  /* update Pension (holder) card */
+  const card=document.getElementById('holder-card');
+  const pctEl=document.getElementById('holder-pct');
+  const amtEl=document.getElementById('amt-holder');
+  if(card && pctEl && amtEl){
+    const isZ=holder===0;
+    pctEl.textContent=holder+'%';
+    amtEl.textContent=fmt(corpus * holder / 100);
+    card.className='ic'+(isZ?' zero':'');
+    card.style.borderColor=isZ?'var(--bdr)':'rgba(240,180,41,.50)';
+    card.style.background=isZ?'transparent':'color-mix(in srgb,#F0B429 8%,transparent)';
+  }
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    HANDLE FREE SLIDER MOVE
-   Hard cap: if moving this slider would push
-   freeTotal above 100, clamp it.
-   Show warning if already at cap (scss=0).
+   Two hard caps:
+   (a) Total of all FREE allocations ≤ 100
+       (else nothing left for Pension)
+   (b) SCSS allocation × corpus ≤ ₹30L
+       (govt limit, hardCap on FREE_INST)
+   Slider is physically clamped to the
+   tightest applicable cap.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 function handleSlider(id, rawVal){
+  const inst = FREE_INST.find(i=>i.id===id);
   const otherTotal = FREE_INST.filter(i=>i.id!==id).reduce((s,i)=>s+ALLOC[i.id],0);
-  const maxAllowed = 100 - otherTotal;
-  const clamped = Math.max(0, Math.min(maxAllowed, rawVal));
+  const maxFromTotal = 100 - otherTotal;
+
+  /* SCSS ₹30L cap → translate to % of current corpus */
+  let maxFromAmountCap = 100;
+  let amountCapHit = false;
+  if(inst && inst.hardCap){
+    const corpus = window.__currentCorpus || 0;
+    if(corpus > 0){
+      const pctFromCap = (inst.hardCap / corpus) * 100;
+      maxFromAmountCap = Math.floor(pctFromCap);
+      if(rawVal > maxFromAmountCap) amountCapHit = true;
+    }
+  }
+
+  const hardMax = Math.min(maxFromTotal, maxFromAmountCap);
+  const clamped = Math.max(0, Math.min(hardMax, rawVal));
   ALLOC[id] = clamped;
 
   /* snap slider back if clamped */
   const sl=document.getElementById('sl-'+id);
-  if(sl && sl.value != clamped) sl.value=clamped;
+  if(sl && +sl.value !== clamped) sl.value=clamped;
 
   /* update label */
   const lbl=document.getElementById('av-'+id);
   if(lbl) lbl.textContent=clamped+'%';
 
-  /* update SCSS card in-place — does NOT touch free slider cards */
-  updateScssCard();
-  refreshEffTax();
-
-  /* show warning if scss is 0 and user tried to go higher */
+  /* warnings */
   const warn=document.getElementById('warn-msg');
-  if(warn) warn.className='warn-msg'+(scssAlloc()===0&&rawVal>clamped?' show':'');
+  if(warn){
+    if(amountCapHit && rawVal > clamped){
+      warn.innerHTML='⚠ SCSS capped at ₹30L (government limit). Excess flows to Pension.';
+      warn.className='warn-msg show';
+    } else if(holderAlloc()===0 && rawVal > clamped){
+      warn.innerHTML='⚠ Cannot exceed 100% total. Reduce another instrument to free up space.';
+      warn.className='warn-msg show';
+    } else {
+      warn.className='warn-msg';
+    }
+  }
 
+  /* must render first to recompute corpus, then update card amounts */
   render();
+  updateAllCardAmounts();
+  refreshEffTax();
 }
 
 function refreshEffTax(){
@@ -837,11 +903,16 @@ function render(){
   const P=getP();
   const ret=blendRet();
   const corpus=calcCorpus(P.moGross,P.years,ret,P.inf);
+  /* store corpus globally so card amount helpers can read it */
+  window.__currentCorpus = corpus;
   const rows=simulate(corpus,P.moGross,P.years,ret,P.inf);
   updateCorpusCard(corpus,P,ret,rows);
   drawCorpus(rows,corpus,P.retYear);
   drawGrowth(rows,P.retYear);
   buildTable(rows,P.retYear);
+  /* keep card amounts + effective tax in sync on every render */
+  updateAllCardAmounts();
+  refreshEffTax();
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
