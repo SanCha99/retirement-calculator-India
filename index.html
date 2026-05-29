@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Retirement Corpus Calculator v4.2.1</title>
+<title>Retirement Corpus Calculator v4.5</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@400;500;600&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -78,25 +78,120 @@ input[type=range].c3::-webkit-slider-thumb{background:var(--teal);box-shadow:0 0
 .iname{font-size:12px;font-weight:600;color:#F0F4FF;}
 .isub{font-size:11px;color:var(--mu);margin-top:3px;}
 .itax{font-size:10px;color:var(--dm);margin-top:2px;}
-.ar{display:flex;align-items:center;gap:6px;margin-top:8px;}
-.ar input[type=range]{height:3px;cursor:pointer;}
-.av{font-size:13px;font-weight:700;min-width:36px;text-align:right;}
-.amt-row{
-  margin-top:6px;
-  font-size:12px;
+.ar{display:flex;align-items:center;gap:6px;margin-top:10px;}
+.ar input[type=range]{height:4px;cursor:pointer;}
+
+/* lock toggle button */
+.lock-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:30px;
+  height:30px;
+  background:var(--surf2);
+  border:1px solid var(--bdr);
+  border-radius:8px;
+  cursor:pointer;
+  font-size:14px;
+  line-height:1;
+  padding:0;
+  transition:all .15s;
+  user-select:none;
+}
+.lock-btn:hover{background:var(--surf);border-color:var(--gold);}
+.lock-btn.locked{
+  background:rgba(240,180,41,.18);
+  border-color:var(--gold);
+  box-shadow:0 0 0 2px rgba(240,180,41,.15);
+}
+
+/* slider disabled (locked) state */
+input[type=range]:disabled{opacity:.35;cursor:not-allowed;}
+input[type=range]:disabled::-webkit-slider-thumb{cursor:not-allowed;}
+
+/* full-width ₹ entry field */
+.entry-field-full{
+  display:flex;
+  align-items:center;
+  background:var(--surf2);
+  border:1px solid var(--bdr);
+  border-radius:7px;
+  padding:7px 11px;
+  margin-top:10px;
+  transition:border-color .15s;
+}
+.entry-field-full.disabled{opacity:.45;}
+.entry-field-full:focus-within{border-color:var(--gold);}
+.entry-input{
+  width:100%;
+  min-width:0;
+  background:transparent;
+  border:none;
+  outline:none;
+  color:#fff;
+  font-family:'DM Sans',sans-serif;
+  font-size:15px;
+  font-weight:600;
+  text-align:right;
+  letter-spacing:.01em;
+}
+.entry-unit-pre{font-size:14px;color:var(--mu);margin-right:6px;font-weight:600;}
+
+.amt-display{
+  margin-top:8px;
+  font-size:14px;
   font-family:'DM Serif Display',serif;
   font-weight:400;
   text-align:right;
   letter-spacing:.02em;
 }
-.ic.zero .amt-row{opacity:.4;}
+.disp-sep{opacity:.5;margin:0 6px;}
+.ic.zero .amt-display,
+.ic.zero .entry-input{opacity:.45;}
 
 .scss-badge{display:inline-block;font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:8px;background:rgba(226,92,240,.15);color:#E29CF0;margin-top:4px;}
 
 /* footer strip below grid */
-.alloc-footer{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;padding-top:8px;border-top:1px solid var(--bdr);}
-.alloc-total-lbl{font-size:12px;color:var(--mu);}
+.alloc-footer{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  padding-top:10px;
+  border-top:1px solid var(--bdr);
+}
+.alloc-summary{display:flex;flex-direction:column;gap:4px;}
+.alloc-summary-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.alloc-summary-lbl{font-size:12px;color:var(--mu);}
+.alloc-remaining-lbl{color:var(--gold);}
+.alloc-summary-amt{font-size:12px;color:var(--dm);font-family:'DM Serif Display',serif;margin-left:auto;}
 .abadge{font-size:12px;font-weight:700;padding:3px 12px;border-radius:20px;background:rgba(94,231,183,.10);border:1px solid rgba(94,231,183,.40);color:var(--teal);}
+.abadge-warn{background:rgba(240,180,41,.10);border-color:rgba(240,180,41,.45);color:var(--gold);}
+
+.apply-btn{
+  width:100%;
+  padding:11px 14px;
+  background:var(--gold);
+  color:#1A1200;
+  font-size:13px;
+  font-weight:600;
+  font-family:'DM Sans',sans-serif;
+  letter-spacing:.02em;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  box-shadow:0 0 0 3px rgba(240,180,41,.20);
+  transition:all .15s;
+}
+.apply-btn:hover{background:#FFD060;box-shadow:0 0 0 5px rgba(240,180,41,.28);}
+.apply-btn.applied{
+  background:rgba(94,231,183,.12);
+  color:var(--teal);
+  border:1px solid rgba(94,231,183,.45);
+  box-shadow:none;
+}
+.apply-btn.applied:hover{background:rgba(94,231,183,.20);box-shadow:none;}
+.apply-btn:disabled{opacity:.45;cursor:not-allowed;}
+
 .tax-display{font-size:12px;color:var(--mu);}
 .tax-val{font-size:13px;font-weight:700;color:var(--gold);margin-left:4px;}
 
@@ -300,15 +395,32 @@ footer{text-align:center;padding:24px 16px 20px;font-size:11px;color:#8A9BB0;bor
 <div class="card">
   <div class="st">Investment instruments &amp; allocation</div>
   <p style="font-size:11px;color:var(--mu);margin-bottom:12px;">
-    Set your allocation for each instrument. Pension automatically absorbs the remainder
-    so total always equals 100%. SCSS is hard-capped at ₹30L (government limit).
+    Slide each card or type a ₹ amount — independently. Total can stay below 100% while you experiment.
+    Tap <strong style="color:var(--gold);">🔓</strong> to lock a value so others can't disturb it.
+    When you're ready, tap <strong style="color:var(--gold);">Apply</strong> to let Pension hold the remainder.
   </p>
 
   <div class="igrid" id="igrid"></div>
 
-  <!-- ALLOC FOOTER: total + effective tax + warning -->
+  <!-- ALLOC FOOTER: 5-card total + Apply button + effective tax + warning -->
   <div class="alloc-footer">
-    <div class="alloc-total-lbl">Allocation total: <span class="abadge">100%</span></div>
+    <div class="alloc-summary">
+      <div class="alloc-summary-row">
+        <span class="alloc-summary-lbl">Allocated (5 cards):</span>
+        <span class="abadge" id="alloc-total-badge">75%</span>
+        <span class="alloc-summary-amt" id="alloc-total-amt">—</span>
+      </div>
+      <div class="alloc-summary-row" id="alloc-remaining-row">
+        <span class="alloc-summary-lbl alloc-remaining-lbl">Unallocated:</span>
+        <span class="abadge abadge-warn" id="alloc-remain-badge">25%</span>
+        <span class="alloc-summary-amt" id="alloc-remain-amt">—</span>
+      </div>
+    </div>
+
+    <button class="apply-btn" id="apply-btn" onclick="applyAllocation()">
+      Apply → flow remainder to Pension
+    </button>
+
     <div class="tax-display">
       Portfolio tax efficiency: <span class="tax-val" id="eff-tax-val">—</span>
       <span class="info-tip" tabindex="0" aria-label="Portfolio tax efficiency explanation">ⓘ
@@ -412,7 +524,7 @@ footer{text-align:center;padding:24px 16px 20px;font-size:11px;color:#8A9BB0;bor
 <footer>
   Tax computed under India new tax regime (FY 2026-27) including 4% health &amp; education cess.<br>
   Returns shown are nominal pre-tax estimates · Last updated for FY 2026-27 slabs.
-  <div class="fver">v4.2.1</div>
+  <div class="fver">v4.5</div>
 </footer>
 
 <script>
@@ -433,18 +545,29 @@ footer{text-align:center;padding:24px 16px 20px;font-size:11px;color:#8A9BB0;bor
      SCSS: 100% taxable at 20% avg slab → 20%
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 const FREE_INST = [
-  {id:'swp',  name:'MF SWP',    sub:'Equity / Balanced', ret:8.5, color:'#7B6FFF', taxRate:0.044, taxLbl:'Most efficient — LTCG 12.5% on gains only'},
+  {id:'scss', name:'SCSS',      sub:'Senior Citizens SS', ret:8.2, color:'#E25CF0', taxRate:0.20,  taxLbl:'Govt guaranteed · zero market risk · interest at slab rate',  hardCap:3000000},
+  {id:'swp',  name:'MF SWP',    sub:'Equity / Balanced', ret:8.5, color:'#7B6FFF', taxRate:0.044, taxLbl:'Market-linked · LTCG 12.5% on gains only'},
   {id:'fd',   name:'Bank FD',   sub:'Senior citizen',    ret:7.0, color:'#4A9EFF', taxRate:0.20,  taxLbl:'Interest 100% taxable at slab rate'},
-  {id:'scss', name:'SCSS',      sub:'Senior Citizens SS', ret:8.2, color:'#E25CF0', taxRate:0.20,  taxLbl:'Govt guaranteed · interest at slab rate',  hardCap:3000000},
   {id:'ppf',  name:'PPF/Debt',  sub:'Debt / Gilt MF',   ret:7.2, color:'#5EE7B7', taxRate:0.0,   taxLbl:'PPF fully tax-free'},
   {id:'rent', name:'Rental',    sub:'Property income',   ret:3.5, color:'#FF8C5A', taxRate:0.14,  taxLbl:'30% std deduction — 70% taxable'},
 ];
 /* Pension is the auto-holder — absorbs remainder so total = 100% */
 const HOLDER_INST = {id:'pen', name:'Pension', sub:'Annuity plan', ret:6.0, color:'#F0B429', taxRate:0.08, taxLbl:'Partly taxable — commutation exempt'};
 
-/* allocation state — each FREE instrument has an independent value 0–100 */
-let ALLOC = {swp:40, fd:25, scss:10, ppf:10, rent:0};
-let WMODE = 'fix';
+/* allocation state — each FREE instrument has an independent value 0–100.
+   LOCKED state per instrument: true = slider frozen, value protected
+   from rebalance. User taps the lock icon on a card to toggle. */
+/* allocation state.
+   Phase model:
+     APPLIED=false → Phase 1 (free play). Pension stays at 0% regardless
+                     of the 5-card total. User experiments freely.
+     APPLIED=true  → Phase 2 (applied). Pension = 100 - sum(5 cards).
+                     Any slider move auto-reverts to Phase 1.
+   LOCKED per instrument: protects a card from being moved.            */
+let ALLOC   = {scss:10, swp:40, fd:25, ppf:10, rent:0};
+let LOCKED  = {scss:false, swp:false, fd:false, ppf:false, rent:false};
+let APPLIED = false;
+let WMODE   = 'fix';
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    ALLOCATION HELPERS
@@ -453,6 +576,9 @@ function freeTotal(){
   return FREE_INST.reduce((s,i)=>s+ALLOC[i.id],0);
 }
 function holderAlloc(){
+  /* Phase 1 (not yet applied): Pension stays at 0%, no auto-overflow.
+     Phase 2 (applied): Pension takes the remainder of the 5 free cards.   */
+  if(!APPLIED) return 0;
   return Math.max(0, 100 - freeTotal());
 }
 
@@ -464,6 +590,16 @@ function fmt(n){
   if(n>=1e7)return'₹'+(n/1e7).toFixed(2)+' Cr';
   if(n>=1e5)return'₹'+(n/1e5).toFixed(1)+'L';
   return'₹'+Math.round(n/1000)+'K';
+}
+/* Indian comma grouping: 30,00,000 (lakh/crore style) */
+function indianComma(n){
+  const num=Math.round(n);
+  const s=String(num);
+  if(s.length<=3) return s;
+  const last3=s.slice(-3);
+  let rest=s.slice(0,-3);
+  rest=rest.replace(/\B(?=(\d{2})+(?!\d))/g,',');
+  return rest+','+last3;
 }
 function fC(n){
   if(n<=0)return'0';
@@ -606,9 +742,10 @@ function buildGrid(){
 
   const corpus = window.__currentCorpus || 0;
 
-  /* cards 1-5: free instruments with sliders. SCSS is one of them now. */
+  /* free instrument cards (SCSS first) with slider + ₹ input + lock toggle */
   FREE_INST.forEach(inst=>{
     const alloc=ALLOC[inst.id];
+    const locked=LOCKED[inst.id];
     const isZero=alloc===0;
     const amount = corpus * alloc / 100;
     const d=document.createElement('div');
@@ -617,32 +754,47 @@ function buildGrid(){
     d.style.borderColor=isZero?'var(--bdr)':inst.color;
     d.style.background=isZero?'transparent':`color-mix(in srgb,${inst.color} 8%,transparent)`;
 
-    /* SCSS shows ₹30L cap label */
     const capLbl = inst.hardCap
-      ? `<div style="font-size:9px;color:#E29CF0;margin-top:2px;">Cap: ₹30L (govt limit)</div>`
+      ? `<div style="font-size:9px;color:#E29CF0;margin-top:2px;">Max ₹30L (govt limit)</div>`
       : '';
 
     d.innerHTML=`
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div><span class="idot" style="background:${inst.color}"></span><span class="iname">${inst.name}</span></div>
-        <span style="font-size:11px;font-weight:700;color:${inst.color}">${inst.ret}%</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:11px;font-weight:700;color:${inst.color}">${inst.ret}%</span>
+          <button class="lock-btn ${locked?'locked':''}" id="lock-${inst.id}"
+            onclick="toggleLock('${inst.id}')" aria-label="Lock or unlock this allocation"
+            title="${locked?'Locked — tap to unlock':'Tap to lock this allocation'}">
+            ${locked?'🔒':'🔓'}
+          </button>
+        </div>
       </div>
       <div class="isub">${inst.sub}</div>
       <div class="itax">${inst.taxLbl}</div>
       ${capLbl}
       <div class="ar">
-        <input type="range" id="sl-${inst.id}" min="0" max="100" step="1"
-          value="${alloc}" style="flex:1;"
+        <input type="range" id="sl-${inst.id}" min="0" max="100" step="0.5"
+          value="${alloc}" style="flex:1;" ${locked?'disabled':''}
           oninput="handleSlider('${inst.id}',+this.value)">
-        <span class="av" id="av-${inst.id}" style="color:${inst.color}">${alloc}%</span>
       </div>
-      <div class="amt-row" id="amt-${inst.id}" style="color:${inst.color};">
-        ${fmt(amount)}
+      <div class="entry-field-full ${locked?'disabled':''}">
+        <span class="entry-unit-pre">₹</span>
+        <input type="text" inputmode="numeric" id="amtinp-${inst.id}"
+          class="entry-input amt-input" value="${indianComma(amount)}" ${locked?'readonly':''}
+          style="color:${inst.color};"
+          onchange="setAllocAmount('${inst.id}',this.value)"
+          onfocus="this.select()">
+      </div>
+      <div class="amt-display" style="color:${inst.color};">
+        <span id="disp-pct-${inst.id}">${fmtPct(alloc)}%</span>
+        <span class="disp-sep">·</span>
+        <span id="disp-amt-${inst.id}">${fmt(amount)}</span>
       </div>`;
     g.appendChild(d);
   });
 
-  /* card 6: PENSION — auto-holder, no slider */
+  /* Pension — auto-holder, no inputs */
   const holder=holderAlloc();
   const holderAmt = corpus * holder / 100;
   const isZeroH=holder===0;
@@ -658,108 +810,275 @@ function buildGrid(){
     </div>
     <div class="isub">${HOLDER_INST.sub}</div>
     <div class="itax">${HOLDER_INST.taxLbl}</div>
-    <div style="margin-top:8px;display:flex;justify-content:flex-end;">
-      <span class="av" id="holder-pct" style="color:#F0B429;font-size:15px;">${holder}%</span>
+    <div style="margin-top:4px;">
+      <span class="scss-badge" style="background:rgba(240,180,41,.15);color:#F0C060;">
+        ${APPLIED ? 'Holding remainder' : 'Tap Apply to fill'}
+      </span>
     </div>
-    <div class="amt-row" id="amt-holder" style="color:#F0B429;">
-      ${fmt(holderAmt)}
-    </div>
-    <div style="margin-top:4px;"><span class="scss-badge" style="background:rgba(240,180,41,.15);color:#F0C060;">Auto — balance to 100%</span></div>`;
+    <div class="amt-display" id="amt-holder" style="color:#F0B429;margin-top:10px;">
+      <span id="disp-pct-holder">${fmtPct(holder)}%</span>
+      <span class="disp-sep">·</span>
+      <span id="disp-amt-holder">${fmt(holderAmt)}</span>
+    </div>`;
   g.appendChild(sc);
 }
 
+/* format a percentage: drop trailing .0 but keep 1 decimal when needed */
+function fmtPct(p){
+  const r=Math.round(p*10)/10;
+  return Number.isInteger(r)?String(r):r.toFixed(1);
+}
+
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   UPDATE CARD AMOUNTS IN-PLACE
-   Updates the absolute ₹ amount + holder %
-   on all 6 cards without rebuilding the
-   DOM (which would kill active slider drags).
+   UPDATE CARD VALUES IN-PLACE
+   Refreshes amounts, % inputs, slider
+   positions and holder card — without
+   rebuilding the DOM (preserves focus
+   and active drags).
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 function updateAllCardAmounts(){
   const corpus = window.__currentCorpus || 0;
   const holder = holderAlloc();
 
-  /* update free cards: amount + zero-styling */
   FREE_INST.forEach(inst=>{
     const ic=document.getElementById('ic-'+inst.id);
-    const amtEl=document.getElementById('amt-'+inst.id);
-    if(!ic||!amtEl) return;
+    if(!ic) return;
     const alloc=ALLOC[inst.id];
     const isZ=alloc===0;
     const amount = corpus * alloc / 100;
-    amtEl.textContent = fmt(amount);
+
+    /* one-line summary: % · ₹amount */
+    const dispPct=document.getElementById('disp-pct-'+inst.id);
+    const dispAmt=document.getElementById('disp-amt-'+inst.id);
+    if(dispPct) dispPct.textContent=fmtPct(alloc)+'%';
+    if(dispAmt) dispAmt.textContent=fmt(amount);
+
+    /* sync the ₹ input with commas (only if not focused) */
+    const amtInp=document.getElementById('amtinp-'+inst.id);
+    if(amtInp && document.activeElement!==amtInp) amtInp.value=indianComma(amount);
+
+    /* sync the slider (only if not focused) */
+    const sl=document.getElementById('sl-'+inst.id);
+    if(sl && document.activeElement!==sl) sl.value=alloc;
+
     ic.className='ic'+(isZ?' zero':'');
     ic.style.borderColor=isZ?'var(--bdr)':inst.color;
     ic.style.background=isZ?'transparent':`color-mix(in srgb,${inst.color} 8%,transparent)`;
   });
 
-  /* update Pension (holder) card */
   const card=document.getElementById('holder-card');
-  const pctEl=document.getElementById('holder-pct');
-  const amtEl=document.getElementById('amt-holder');
-  if(card && pctEl && amtEl){
+  const dispPctH=document.getElementById('disp-pct-holder');
+  const dispAmtH=document.getElementById('disp-amt-holder');
+  if(card && dispPctH && dispAmtH){
     const isZ=holder===0;
-    pctEl.textContent=holder+'%';
-    amtEl.textContent=fmt(corpus * holder / 100);
+    dispPctH.textContent=fmtPct(holder)+'%';
+    dispAmtH.textContent=fmt(corpus * holder / 100);
     card.className='ic'+(isZ?' zero':'');
     card.style.borderColor=isZ?'var(--bdr)':'rgba(240,180,41,.50)';
     card.style.background=isZ?'transparent':'color-mix(in srgb,#F0B429 8%,transparent)';
   }
+
+  /* refresh allocation footer: total / remaining / apply button */
+  updateAllocFooter(corpus);
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   HANDLE FREE SLIDER MOVE
-   Two hard caps:
-   (a) Total of all FREE allocations ≤ 100
-       (else nothing left for Pension)
-   (b) SCSS allocation × corpus ≤ ₹30L
-       (govt limit, hardCap on FREE_INST)
-   Slider is physically clamped to the
-   tightest applicable cap.
+   ALLOC FOOTER: live total, remainder, apply-button state
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-function handleSlider(id, rawVal){
+function updateAllocFooter(corpus){
+  const total = freeTotal();
+  const remain = Math.max(0, 100 - total);
+
+  const totalBadge = document.getElementById('alloc-total-badge');
+  const totalAmt   = document.getElementById('alloc-total-amt');
+  const remainBadge= document.getElementById('alloc-remain-badge');
+  const remainAmt  = document.getElementById('alloc-remain-amt');
+  const remainRow  = document.getElementById('alloc-remaining-row');
+  const applyBtn   = document.getElementById('apply-btn');
+
+  if(totalBadge) totalBadge.textContent = fmtPct(total)+'%';
+  if(totalAmt)   totalAmt.textContent   = fmt(corpus*total/100);
+  if(remainBadge)remainBadge.textContent= fmtPct(remain)+'%';
+  if(remainAmt)  remainAmt.textContent  = fmt(corpus*remain/100);
+
+  /* colour the total badge: green when within 100, red if (somehow) over */
+  if(totalBadge){
+    totalBadge.className = 'abadge' + (total > 100.01 ? ' abadge-warn' : '');
+  }
+
+  /* hide "Unallocated" row when total is already 100 (nothing left for pension) */
+  if(remainRow){
+    remainRow.style.display = remain < 0.05 ? 'none' : 'flex';
+  }
+
+  if(applyBtn){
+    if(APPLIED){
+      applyBtn.className='apply-btn applied';
+      applyBtn.textContent='✓ Applied — Pension holds '+fmtPct(remain)+'% ('+fmt(corpus*remain/100)+'). Tap any slider to edit.';
+      applyBtn.disabled=true;
+    } else {
+      applyBtn.className='apply-btn';
+      applyBtn.disabled = remain < 0.05;   /* nothing to flow */
+      applyBtn.textContent = remain < 0.05
+        ? 'Already at 100% — nothing for Pension'
+        : 'Apply → flow '+fmtPct(remain)+'% ('+fmt(corpus*remain/100)+') to Pension';
+    }
+  }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   ALLOCATION CAP HELPER
+   Returns the max % a given instrument can
+   take, considering:
+   (a) 100 - (sum of other free allocations)
+   (b) SCSS ₹30L hard cap → % of current corpus
+   Returns {max, amountCapHit}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CAP CALCULATION
+   Returns the max % the active instrument can take, given:
+   (a) 100 minus sum of LOCKED instruments (active can't push locked)
+   (b) SCSS ₹30L hard cap → % of current corpus
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CAP CALCULATION
+   Returns the max % the active instrument can take:
+   (a) 100 minus sum of ALL OTHER free-card allocations
+       (since no auto-rebalance, active fills only available headroom)
+   (b) SCSS ₹30L hard cap → % of current corpus
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function allocMax(id, requested){
   const inst = FREE_INST.find(i=>i.id===id);
-  const otherTotal = FREE_INST.filter(i=>i.id!==id).reduce((s,i)=>s+ALLOC[i.id],0);
+  /* Active can fill 100% only if all OTHER free cards sum to 0 */
+  const otherTotal = FREE_INST
+    .filter(i=>i.id!==id)
+    .reduce((s,i)=>s+ALLOC[i.id],0);
   const maxFromTotal = 100 - otherTotal;
 
-  /* SCSS ₹30L cap → translate to % of current corpus */
-  let maxFromAmountCap = 100;
-  let amountCapHit = false;
+  let maxFromAmountCap = 100, amountCapHit=false;
   if(inst && inst.hardCap){
     const corpus = window.__currentCorpus || 0;
     if(corpus > 0){
-      const pctFromCap = (inst.hardCap / corpus) * 100;
-      maxFromAmountCap = Math.floor(pctFromCap);
-      if(rawVal > maxFromAmountCap) amountCapHit = true;
+      maxFromAmountCap = (inst.hardCap / corpus) * 100;
+      if(requested > maxFromAmountCap + 0.05) amountCapHit=true;
     }
   }
+  return { max: Math.min(maxFromTotal, maxFromAmountCap), amountCapHit };
+}
 
-  const hardMax = Math.min(maxFromTotal, maxFromAmountCap);
-  const clamped = Math.max(0, Math.min(hardMax, rawVal));
-  ALLOC[id] = clamped;
-
-  /* snap slider back if clamped */
-  const sl=document.getElementById('sl-'+id);
-  if(sl && +sl.value !== clamped) sl.value=clamped;
-
-  /* update label */
-  const lbl=document.getElementById('av-'+id);
-  if(lbl) lbl.textContent=clamped+'%';
-
-  /* warnings */
+function showWarn(amountCapHit, totalCapHit){
   const warn=document.getElementById('warn-msg');
-  if(warn){
-    if(amountCapHit && rawVal > clamped){
-      warn.innerHTML='⚠ SCSS capped at ₹30L (government limit). Excess flows to Pension.';
-      warn.className='warn-msg show';
-    } else if(holderAlloc()===0 && rawVal > clamped){
-      warn.innerHTML='⚠ Cannot exceed 100% total. Reduce another instrument to free up space.';
-      warn.className='warn-msg show';
-    } else {
-      warn.className='warn-msg';
-    }
+  if(!warn) return;
+  if(amountCapHit){
+    warn.innerHTML='⚠ SCSS capped at ₹30L (government limit). Excess flows to Pension.';
+    warn.className='warn-msg show';
+  } else if(totalCapHit){
+    warn.innerHTML='⚠ Total can\'t exceed 100%. Unlock or reduce another instrument.';
+    warn.className='warn-msg show';
+  } else {
+    warn.className='warn-msg';
   }
+}
 
-  /* must render first to recompute corpus, then update card amounts */
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   REBALANCE OTHER UNLOCKED CARDS
+   When the user moves slider `activeId` to value `activeVal`,
+   the other unlocked free instruments must absorb whatever
+   headroom remains, distributed proportionally to their
+   current values. Locked cards never move. Pension (the
+   holder) gets whatever is left over after the 5 free.
+
+   Headroom for "others" = 100 - lockedSum - activeVal
+   - If headroom < 0: can't happen because allocMax already
+     clamped activeVal; safety clamp to 0 anyway.
+   - If sum of other-unlocked currently == 0: split equally.
+   - Otherwise: scale proportionally so they sum to headroom.
+
+   Returns nothing; mutates ALLOC for the other unlocked cards.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   PHASE 1 — NO AUTO-REBALANCE
+   The 5 free cards move independently. The 5-card total
+   can be anywhere from 0% to 100%. Pension stays at 0%
+   until the user taps "Apply allocation" (Phase 2).
+
+   The allocMax cap is just: active card cannot push the
+   5-card sum above 100% (otherwise we'd be allocating
+   more than the corpus). Locked cards are protected.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/* No rebalanceOthers function in Phase 1. Each slider is independent. */
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   TOGGLE LOCK on a card
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function toggleLock(id){
+  LOCKED[id] = !LOCKED[id];
+  buildGrid();
+  refreshEffTax();
+  showWarn(false, false);
+  render();
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   APPLY ALLOCATION — Phase 1 → Phase 2
+   Pension takes the remainder (100 - sum of 5).
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function applyAllocation(){
+  APPLIED = true;
+  buildGrid();          /* refresh apply-button text + visual state */
+  render();
+  updateAllCardAmounts();
+  refreshEffTax();
+  showWarn(false, false);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   REVERT TO PHASE 1
+   Triggered automatically when any slider/input
+   changes after Apply.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function revertToDraft(){
+  if(!APPLIED) return;
+  APPLIED = false;
+  buildGrid();          /* refresh button text */
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   SLIDER MOVE
+   If the card is locked, ignore (slider is also
+   disabled in DOM, but guard defensively).
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function handleSlider(id, rawVal){
+  if(LOCKED[id]) return;
+  revertToDraft();
+  const {max, amountCapHit}=allocMax(id, rawVal);
+  const clamped=Math.max(0, Math.min(max, rawVal));
+  ALLOC[id]=clamped;
+
+  const sl=document.getElementById('sl-'+id);
+  if(sl && +sl.value!==clamped) sl.value=clamped;
+
+  showWarn(amountCapHit, !amountCapHit && rawVal>clamped+0.01);
+  render();
+  updateAllCardAmounts();
+  refreshEffTax();
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   DIRECT ₹ AMOUNT ENTRY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function setAllocAmount(id, rawVal){
+  if(LOCKED[id]) return;
+  revertToDraft();
+  const corpus = window.__currentCorpus || 0;
+  let amt=parseFloat(String(rawVal).replace(/[, ]/g,''));
+  if(isNaN(amt)||amt<0) amt=0;
+  let pct = corpus>0 ? (amt/corpus)*100 : 0;
+  const {max, amountCapHit}=allocMax(id, pct);
+  const clamped=Math.max(0, Math.min(max, pct));
+  ALLOC[id]=clamped;
+  showWarn(amountCapHit, !amountCapHit && pct>clamped+0.01);
   render();
   updateAllCardAmounts();
   refreshEffTax();
