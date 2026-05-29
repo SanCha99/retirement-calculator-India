@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Retirement Corpus Calculator v4.5</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@400;500;600&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0E1117;--surf:#161B25;--surf2:#1E2535;--bdr:#2A3347;
+  --gold:#F0B429;--blue:#4A9EFF;--teal:#5EE7B7;--red:#FF5C5C;
+  --purple:#7B6FFF;
+  --tx:#F4F7FF;--mu:#D0DCF0;--dm:#A8B8CC;--faint:#2A3650;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;font-size:14px;-webkit-font-smoothing:antialiased;}
+
+/* ── HEADER ── */
+header{background:linear-gradient(150deg,#1B2638,#0D1520);border-bottom:1px solid var(--bdr);padding:22px 16px 18px;text-align:center;position:relative;overflow:hidden;}
+header::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 90% 60% at 50% -10%,rgba(240,180,41,.13),transparent 70%);pointer-events:none;}
+.badge{display:inline-block;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);border:1px solid rgba(240,180,41,.35);border-radius:20px;padding:3px 13px;margin-bottom:12px;position:relative;}
+h1{font-family:'DM Serif Display',serif;font-size:27px;font-weight:400;color:#fff;line-height:1.2;margin-bottom:7px;position:relative;}
+h1 em{font-style:italic;color:var(--gold);}
+header p{font-size:12px;color:#C8D8EE;max-width:320px;margin:0 auto;line-height:1.65;position:relative;}
+.top-disclaimer{
+  position:relative;
+  margin:14px auto 0;
+  max-width:560px;
+  font-size:11px;
+  color:#FFD080;
+  background:rgba(240,180,41,.10);
+  border:1px solid rgba(240,180,41,.40);
+  border-radius:8px;
+  padding:9px 14px;
+  line-height:1.6;
+}
+.top-disclaimer strong{color:var(--gold);font-weight:600;display:block;margin-bottom:2px;font-size:12px;}
+
+.wrap{max-width:680px;margin:0 auto;padding:14px;}
+.card{background:var(--surf);border:1px solid var(--bdr);border-radius:10px;padding:16px;margin-bottom:12px;}
+.st{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.st::after{content:'';flex:1;height:1px;background:var(--bdr);}
+
+/* ── COLLAPSED INPUT ── */
+.input-collapsed{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.pills{display:flex;flex-wrap:wrap;gap:5px;flex:1;}
+.pill{font-size:10px;padding:3px 9px;border-radius:12px;background:var(--surf2);border:1px solid var(--bdr);color:var(--mu);}
+.pill.hi{background:rgba(74,158,255,.12);border-color:rgba(74,158,255,.35);color:#7EC8FF;}
+.edit-btn{flex-shrink:0;font-size:12px;font-weight:600;padding:8px 18px;border-radius:8px;border:none;cursor:pointer;background:#F0B429;color:#1A1200;font-family:'DM Sans',sans-serif;letter-spacing:.02em;box-shadow:0 0 0 3px rgba(240,180,41,.25);transition:all .15s;}
+.edit-btn:hover{background:#FFD060;box-shadow:0 0 0 6px rgba(240,180,41,.28);}
+.input-expanded{display:none;}
+.input-expanded.open{display:block;}
+
+/* ── SLIDERS ── */
+.hero{background:linear-gradient(135deg,rgba(74,158,255,.10),rgba(74,158,255,.04));border:1px solid rgba(74,158,255,.30);border-radius:10px;padding:16px 16px 13px;margin-bottom:16px;}
+.hero-top{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:10px;}
+.hero-lbl{font-size:13px;font-weight:600;color:#D8EAFF;line-height:1.5;}
+.hero-lbl small{display:block;font-size:11px;font-weight:400;color:var(--mu);}
+.hero-num{font-family:'DM Serif Display',serif;font-size:36px;color:#fff;line-height:1;text-align:right;}
+.hero-num small{display:block;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--mu);margin-top:2px;}
+.ticks{display:flex;justify-content:space-between;margin-top:7px;font-size:10px;color:#5A6A80;}
+.sg{margin-bottom:16px;}
+.sr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;}
+.sl{font-size:13px;color:var(--mu);font-weight:500;}
+.sv{font-family:'DM Serif Display',serif;font-size:21px;color:#fff;}
+.sv small{font-family:'DM Sans',sans-serif;font-size:12px;color:var(--dm);margin-left:3px;}
+input[type=range]{-webkit-appearance:none;width:100%;height:4px;border-radius:4px;background:var(--faint);outline:none;cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 4px rgba(240,180,41,.18);cursor:pointer;}
+input[type=range].c2::-webkit-slider-thumb{background:var(--blue);box-shadow:0 0 0 4px rgba(74,158,255,.20);}
+input[type=range].c3::-webkit-slider-thumb{background:var(--teal);box-shadow:0 0 0 4px rgba(94,231,183,.20);}
+
+/* ── INSTRUMENT GRID ── */
+.igrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.ic{border:1px solid var(--bdr);border-radius:8px;padding:10px 12px;transition:all .15s;}
+.ic.free{cursor:default;}
+.ic.zero{opacity:.55;}
+.idot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle;}
+.iname{font-size:12px;font-weight:600;color:#F0F4FF;}
+.isub{font-size:11px;color:var(--mu);margin-top:3px;}
+.itax{font-size:10px;color:var(--dm);margin-top:2px;}
+.ar{display:flex;align-items:center;gap:6px;margin-top:10px;}
+.ar input[type=range]{height:4px;cursor:pointer;}
+
+/* lock toggle button */
+.lock-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:30px;
+  height:30px;
+  background:var(--surf2);
+  border:1px solid var(--bdr);
+  border-radius:8px;
+  cursor:pointer;
+  font-size:14px;
+  line-height:1;
+  padding:0;
+  transition:all .15s;
+  user-select:none;
+}
+.lock-btn:hover{background:var(--surf);border-color:var(--gold);}
+.lock-btn.locked{
+  background:rgba(240,180,41,.18);
+  border-color:var(--gold);
+  box-shadow:0 0 0 2px rgba(240,180,41,.15);
+}
+
+/* slider disabled (locked) state */
+input[type=range]:disabled{opacity:.35;cursor:not-allowed;}
+input[type=range]:disabled::-webkit-slider-thumb{cursor:not-allowed;}
+
+/* full-width ₹ entry field */
+.entry-field-full{
+  display:flex;
+  align-items:center;
+  background:var(--surf2);
+  border:1px solid var(--bdr);
+  border-radius:7px;
+  padding:7px 11px;
+  margin-top:10px;
+  transition:border-color .15s;
+}
+.entry-field-full.disabled{opacity:.45;}
+.entry-field-full:focus-within{border-color:var(--gold);}
+.entry-input{
+  width:100%;
+  min-width:0;
+  background:transparent;
+  border:none;
+  outline:none;
+  color:#fff;
+  font-family:'DM Sans',sans-serif;
+  font-size:15px;
+  font-weight:600;
+  text-align:right;
+  letter-spacing:.01em;
+}
+.entry-unit-pre{font-size:14px;color:var(--mu);margin-right:6px;font-weight:600;}
+
+.amt-display{
+  margin-top:8px;
+  font-size:14px;
+  font-family:'DM Serif Display',serif;
+  font-weight:400;
+  text-align:right;
+  letter-spacing:.02em;
+}
+.disp-sep{opacity:.5;margin:0 6px;}
+.ic.zero .amt-display,
+.ic.zero .entry-input{opacity:.45;}
+
+.scss-badge{display:inline-block;font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:8px;background:rgba(226,92,240,.15);color:#E29CF0;margin-top:4px;}
+
+/* footer strip below grid */
+.alloc-footer{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  padding-top:10px;
+  border-top:1px solid var(--bdr);
+}
+.alloc-summary{display:flex;flex-direction:column;gap:4px;}
+.alloc-summary-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.alloc-summary-lbl{font-size:12px;color:var(--mu);}
+.alloc-remaining-lbl{color:var(--gold);}
+.alloc-summary-amt{font-size:12px;color:var(--dm);font-family:'DM Serif Display',serif;margin-left:auto;}
+.abadge{font-size:12px;font-weight:700;padding:3px 12px;border-radius:20px;background:rgba(94,231,183,.10);border:1px solid rgba(94,231,183,.40);color:var(--teal);}
+.abadge-warn{background:rgba(240,180,41,.10);border-color:rgba(240,180,41,.45);color:var(--gold);}
+
+.apply-btn{
+  width:100%;
+  padding:11px 14px;
+  background:var(--gold);
+  color:#1A1200;
+  font-size:13px;
+  font-weight:600;
+  font-family:'DM Sans',sans-serif;
+  letter-spacing:.02em;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  box-shadow:0 0 0 3px rgba(240,180,41,.20);
+  transition:all .15s;
+}
+.apply-btn:hover{background:#FFD060;box-shadow:0 0 0 5px rgba(240,180,41,.28);}
+.apply-btn.applied{
+  background:rgba(94,231,183,.12);
+  color:var(--teal);
+  border:1px solid rgba(94,231,183,.45);
+  box-shadow:none;
+}
+.apply-btn.applied:hover{background:rgba(94,231,183,.20);box-shadow:none;}
+.apply-btn:disabled{opacity:.45;cursor:not-allowed;}
+
+.tax-display{font-size:12px;color:var(--mu);}
+.tax-val{font-size:13px;font-weight:700;color:var(--gold);margin-left:4px;}
+
+/* INFO TOOLTIP */
+.info-tip{
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:16px;height:16px;
+  margin-left:4px;
+  border-radius:50%;
+  background:rgba(240,180,41,.15);
+  color:var(--gold);
+  font-size:10px;
+  font-weight:700;
+  cursor:help;
+  vertical-align:middle;
+  outline:none;
+  font-family:'DM Sans',sans-serif;
+}
+.info-tip:hover,.info-tip:focus{background:rgba(240,180,41,.30);}
+.tip-bubble{
+  position:absolute;
+  bottom:calc(100% + 8px);
+  right:0;
+  width:280px;
+  padding:10px 12px;
+  background:#1A2335;
+  border:1px solid var(--gold);
+  border-radius:8px;
+  color:var(--tx);
+  font-size:11px;
+  font-weight:400;
+  line-height:1.6;
+  text-align:left;
+  letter-spacing:0;
+  opacity:0;
+  visibility:hidden;
+  transition:opacity .15s,visibility .15s;
+  z-index:100;
+  box-shadow:0 8px 24px rgba(0,0,0,.6);
+  pointer-events:none;
+}
+.tip-bubble strong{color:var(--gold);}
+.tip-bubble b{color:#E0E8F8;}
+.info-tip:hover .tip-bubble,
+.info-tip:focus .tip-bubble{opacity:1;visibility:visible;}
+@media(max-width:540px){
+  .tip-bubble{width:260px;right:-8px;}
+}
+.warn-msg{font-size:11px;color:var(--red);display:none;width:100%;}
+.warn-msg.show{display:block;}
+
+/* done button */
+.done-btn{width:100%;margin-top:14px;padding:12px;background:var(--teal);color:#042C20;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;border:none;border-radius:8px;cursor:pointer;}
+.done-btn:hover{background:#7AF0CC;}
+
+/* ── WITHDRAWAL MODE SWITCH ── */
+.sw-label{font-size:11px;font-weight:500;color:var(--dm);margin-bottom:6px;letter-spacing:.04em;}
+.bsw{display:flex;border:1px solid var(--bdr);border-radius:8px;overflow:hidden;margin-bottom:12px;}
+.bsb{flex:1;padding:11px 8px;background:transparent;border:none;color:var(--mu);font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;line-height:1.4;transition:all .15s;text-align:center;}
+.bsb small{display:block;font-size:10px;opacity:.8;margin-top:3px;}
+.bsb.on{background:rgba(240,180,41,.12);color:var(--gold);font-weight:600;}
+.bsb.on-fix{background:rgba(74,158,255,.12);color:#7EC8FF;font-weight:600;}
+
+/* ── CORPUS REQUIRED CARD ── */
+.corpus-card{background:linear-gradient(135deg,rgba(123,111,255,.12),rgba(123,111,255,.04));border:1px solid rgba(123,111,255,.35);border-radius:10px;padding:18px 20px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.cc-left{}
+.cc-lbl{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#A89EFF;margin-bottom:6px;}
+.cc-val{font-family:'DM Serif Display',serif;font-size:38px;color:#fff;line-height:1;margin-bottom:4px;}
+.cc-sub{font-size:11px;color:var(--mu);}
+.cc-right{text-align:right;}
+.cc-stat{font-size:11px;color:var(--dm);margin-bottom:3px;}
+.cc-stat span{font-weight:600;color:var(--tx);}
+.status-pill{display:inline-block;font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;margin-top:4px;}
+.status-safe{background:rgba(94,231,183,.15);color:var(--teal);border:1px solid rgba(94,231,183,.35);}
+.status-warn{background:rgba(255,92,92,.15);color:var(--red);border:1px solid rgba(255,92,92,.35);}
+
+/* ── TABS ── */
+.tabs{display:flex;border-bottom:1px solid var(--bdr);margin-bottom:12px;}
+.tb{flex:1;padding:9px 4px;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--dm);font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;text-align:center;font-weight:500;transition:all .15s;}
+.tb.on{color:var(--gold);border-bottom-color:var(--gold);font-weight:600;}
+
+/* ── CHARTS ── */
+svg.ch{width:100%;overflow:visible;}
+.leg{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;}
+.li{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--mu);}
+.ld{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
+
+/* ── TABLE ── */
+.tw{overflow-x:auto;}
+table.yt{width:100%;border-collapse:collapse;font-size:11px;}
+table.yt th{color:#C8D5E8;font-weight:600;padding:6px 7px;border-bottom:1px solid var(--bdr);text-align:right;white-space:nowrap;}
+table.yt th:first-child{text-align:left;}
+table.yt td{padding:5px 7px;border-bottom:1px solid rgba(42,51,71,.35);text-align:right;color:#E8F0FF;}
+table.yt td:first-child{text-align:left;color:#C0CCDE;}
+table.yt tr.xrow td{color:#FFB0B0;}
+table.yt tr.lastok td{color:var(--teal);}
+
+/* ── FOOTER ── */
+footer{text-align:center;padding:24px 16px 20px;font-size:11px;color:#8A9BB0;border-top:1px solid var(--bdr);line-height:2.1;}
+.fver{font-size:10px;color:#6A7A8A;margin-top:4px;}
+
+@media(min-width:540px){.igrid{grid-template-columns:repeat(3,1fr);}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="badge">Retirement Planner · India</div>
+  <h1>How much corpus<br>do you <em>really</em> need?</h1>
+  <p>Tell us the monthly income you need in retirement. We calculate everything else.</p>
+  <div class="top-disclaimer">
+    <strong>⚠ For illustration only — not financial advice.</strong>
+    Past performance is not indicative of future results.
+    Consult a qualified financial advisor before making decisions.
+  </div>
+</header>
+
+<div class="wrap">
+
+<!-- ══════════════════════════════════
+     INPUT SECTION — collapsed by default
+══════════════════════════════════════ -->
+<div class="card" id="input-card">
+
+  <!-- COLLAPSED -->
+  <div class="input-collapsed" id="collapsed-view">
+    <div class="pills" id="summary-pills"></div>
+    <button class="edit-btn" onclick="openInputs()">▼ Show inputs</button>
+  </div>
+
+  <!-- EXPANDED -->
+  <div class="input-expanded" id="expanded-view">
+    <div class="st">Your retirement details</div>
+
+    <div class="hero">
+      <div class="hero-top">
+        <div class="hero-lbl">
+          Monthly income needed
+          <small>Post-tax · in today's rupees</small>
+        </div>
+        <div class="hero-num" id="v-inc">₹1.0L<small>per month</small></div>
+      </div>
+      <input type="range" id="s-inc" class="c2" min="0.5" max="4" step="0.5" value="1">
+      <div class="ticks"><span>50K</span><span>1L</span><span>1.5L</span><span>2L</span><span>2.5L</span><span>3L</span><span>3.5L</span><span>4L</span></div>
+    </div>
+
+    <div class="sg">
+      <div class="sr"><span class="sl">Retirement year</span><span class="sv" id="v-year">2027</span></div>
+      <input type="range" id="s-year" min="2025" max="2040" step="1" value="2027">
+    </div>
+    <div class="sg">
+      <div class="sr"><span class="sl">Years in retirement</span><span class="sv" id="v-lon">25<small>yrs</small></span></div>
+      <input type="range" id="s-lon" class="c3" min="10" max="40" step="1" value="25">
+    </div>
+    <div class="sg" style="margin-bottom:14px;">
+      <div class="sr"><span class="sl">India inflation (planning rate)</span><span class="sv" id="v-inf">5.0<small>%</small></span></div>
+      <input type="range" id="s-inf" min="3" max="9" step="0.5" value="5">
+    </div>
+
+    <!-- WITHDRAWAL MODE — now inside the input card -->
+    <div class="sw-label">Withdrawal mode</div>
+    <div class="bsw" style="margin-bottom:6px;">
+      <button class="bsb on" id="btn-fix" onclick="setWmode('fix')">
+        Fixed amount
+        <small>Same rupee amount every month — purchasing power reduces over time</small>
+      </button>
+      <button class="bsb" id="btn-inf" onclick="setWmode('inf')">
+        Inflation-adjusted
+        <small>Withdrawal grows with inflation each year — your ₹ buys the same as today</small>
+      </button>
+    </div>
+
+    <button class="done-btn" onclick="closeInputs()">▲ Hide input details</button>
+  </div>
+
+</div><!-- /input card -->
+
+<!-- ══════════════════════════════════
+     CORPUS REQUIRED CARD — moved up here
+══════════════════════════════════════ -->
+<div class="corpus-card" id="corpus-card">
+  <div class="cc-left">
+    <div class="cc-lbl">Total corpus required at retirement</div>
+    <div class="cc-val" id="cc-val">—</div>
+    <div class="cc-sub" id="cc-sub"></div>
+  </div>
+  <div class="cc-right">
+    <div class="cc-stat">Monthly gross withdrawal: <span id="cc-gross">—</span></div>
+    <div class="cc-stat">Blended return: <span id="cc-ret">—</span></div>
+    <div class="cc-stat">Tax on withdrawal: <span id="cc-tax">—</span></div>
+    <div id="cc-status"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     INSTRUMENTS & ALLOCATION — moved below corpus card
+══════════════════════════════════════ -->
+<div class="card">
+  <div class="st">Investment instruments &amp; allocation</div>
+  <p style="font-size:11px;color:var(--mu);margin-bottom:12px;">
+    Slide each card or type a ₹ amount — independently. Total can stay below 100% while you experiment.
+    Tap <strong style="color:var(--gold);">🔓</strong> to lock a value so others can't disturb it.
+    When you're ready, tap <strong style="color:var(--gold);">Apply</strong> to let Pension hold the remainder.
+  </p>
+
+  <div class="igrid" id="igrid"></div>
+
+  <!-- ALLOC FOOTER: 5-card total + Apply button + effective tax + warning -->
+  <div class="alloc-footer">
+    <div class="alloc-summary">
+      <div class="alloc-summary-row">
+        <span class="alloc-summary-lbl">Allocated (5 cards):</span>
+        <span class="abadge" id="alloc-total-badge">75%</span>
+        <span class="alloc-summary-amt" id="alloc-total-amt">—</span>
+      </div>
+      <div class="alloc-summary-row" id="alloc-remaining-row">
+        <span class="alloc-summary-lbl alloc-remaining-lbl">Unallocated:</span>
+        <span class="abadge abadge-warn" id="alloc-remain-badge">25%</span>
+        <span class="alloc-summary-amt" id="alloc-remain-amt">—</span>
+      </div>
+    </div>
+
+    <button class="apply-btn" id="apply-btn" onclick="applyAllocation()">
+      Apply → flow remainder to Pension
+    </button>
+
+    <div class="tax-display">
+      Portfolio tax efficiency: <span class="tax-val" id="eff-tax-val">—</span>
+      <span class="info-tip" tabindex="0" aria-label="Portfolio tax efficiency explanation">ⓘ
+        <span class="tip-bubble">
+          <strong>Portfolio tax efficiency</strong> is the weighted average effective tax rate
+          across all instruments in your allocation. Lower = more tax-efficient mix.<br><br>
+          MF SWP ~4.4%, PPF 0%, FD/SCSS ~20%, Pension ~8%, Rental ~14%.<br><br>
+          This rate is used inside the corpus calculation as the realistic tax burden on your
+          withdrawals — instead of progressive slab tax — because your portfolio mixes
+          taxable and tax-efficient instruments.
+        </span>
+      </span>
+    </div>
+    <div class="warn-msg" id="warn-msg"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     CHARTS
+══════════════════════════════════════ -->
+<div class="card">
+  <div class="tabs">
+    <button class="tb on" onclick="showTab('corpus')" id="t-corpus">Corpus journey</button>
+    <button class="tb"    onclick="showTab('growth')" id="t-growth">Growth vs draw</button>
+    <button class="tb"    onclick="showTab('table')"  id="t-table">Year table</button>
+  </div>
+  <div id="p-corpus">
+    <svg id="c-corpus" class="ch" viewBox="0 0 360 230"></svg>
+    <div class="leg" id="l-corpus"></div>
+  </div>
+  <div id="p-growth" style="display:none">
+    <svg id="c-growth" class="ch" viewBox="0 0 360 220"></svg>
+    <div class="leg" id="l-growth"></div>
+  </div>
+  <div id="p-table" style="display:none">
+    <div class="tw"><table class="yt" id="ytbl"></table></div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<!-- ASSUMPTIONS — collapsible -->
+<div style="max-width:680px;margin:0 auto;padding:0 14px 14px;">
+  <div class="card" style="background:var(--surf2);">
+    <details>
+      <summary style="cursor:pointer;font-size:12px;font-weight:600;color:var(--gold);letter-spacing:.04em;list-style:none;display:flex;justify-content:space-between;align-items:center;">
+        <span>📋 Assumptions &amp; limitations of this calculator</span>
+        <span style="color:var(--mu);font-size:11px;">tap to expand</span>
+      </summary>
+      <div style="margin-top:14px;font-size:12px;color:var(--mu);line-height:1.8;">
+        <strong style="color:var(--tx);">How tax is treated in this calculator:</strong>
+        <ul style="margin:8px 0 14px 18px;color:var(--mu);">
+          <li>The tool calculates corpus using the <strong>portfolio's blended effective tax rate</strong> — a weighted average of how each instrument is taxed, based on your allocation.</li>
+          <li>Each instrument has an indicative effective tax rate baked in:
+            MF SWP ~4.4% (only ~35% of redemption is gain, taxed at 12.5% LTCG),
+            PPF 0% (fully exempt), FD/SCSS ~20% (interest taxable at slab rate, assumes 20% slab),
+            Pension ~8% (partly taxable after commutation), Rental ~14% (after 30% std deduction at 20% slab).</li>
+          <li>For reference, the "Tax on withdrawal" card also shows the <strong>progressive slab tax</strong> — what you'd pay if all withdrawals were fully taxable (India new regime FY 2026-27 + 4% cess). This is shown only to help compare. The corpus calculation uses the portfolio rate, not the slab rate.</li>
+          <li>If your portfolio is fully in tax-efficient instruments (MF SWP, PPF), the calculator shows a lower corpus than a naive slab-based calculation would.</li>
+          <li>If your real income slab is higher than 20% (e.g. you have other taxable income), actual FD/SCSS tax burden will be higher than modelled.</li>
+        </ul>
+
+        <strong style="color:var(--tx);">Modelling assumptions:</strong>
+        <ul style="margin:8px 0 14px 18px;color:var(--mu);">
+          <li>Inflation is treated as a <strong>single constant rate</strong> for the full retirement period (in reality it varies year to year)</li>
+          <li>Investment returns are <strong>constant</strong> — no market volatility, no sequence-of-returns risk modelled</li>
+          <li>Tax slabs frozen at <strong>India FY 2026-27 new regime</strong> — slabs typically rise ~5-7% per year, not modelled</li>
+          <li>Effective tax rate per instrument is an <strong>indicative average</strong> (e.g. MF SWP ~4.4%, FD ~20% at an assumed 20% slab)</li>
+          <li>Monthly compounding used — return applied monthly, withdrawal taken monthly, inflation grows monthly</li>
+          <li>Corpus calculation assumes withdrawals start <strong>at retirement</strong>, balance ends at zero at year N</li>
+        </ul>
+
+        <strong style="color:var(--tx);">Not included in the model:</strong>
+        <ul style="margin:8px 0 14px 18px;color:var(--mu);">
+          <li><strong>Healthcare inflation</strong> typically runs 8-9% in India — add 12-15% buffer to corpus for medical costs</li>
+          <li>No <strong>emergency reserve</strong> (3-6 months living expenses) modelled separately</li>
+          <li><strong>Currency risk</strong> — assumes pure INR. NRIs need to plan repatriation timing &amp; FX separately</li>
+          <li>No <strong>large one-time expenses</strong> (children's weddings, home purchase, travel) modelled</li>
+          <li>No <strong>estate / inheritance</strong> planning included</li>
+          <li>Surcharge on income above ₹50L not modelled (most retirees stay below this)</li>
+        </ul>
+
+        <strong style="color:var(--tx);">Instrument return assumptions (nominal, pre-tax, annual):</strong>
+        <ul style="margin:8px 0 14px 18px;color:var(--mu);">
+          <li>MF SWP equity/balanced: 8.5% &nbsp;·&nbsp; Bank FD (senior citizen): 7.0%</li>
+          <li>Pension/annuity: 6.0% (auto-holder — balances total to 100%)</li>
+          <li>PPF/Debt MF: 7.2% &nbsp;·&nbsp; Rental yield (net): 3.5%</li>
+          <li>SCSS: 8.2% (govt guaranteed, <strong>hard-capped at ₹30L per person</strong>)</li>
+        </ul>
+
+        <div style="margin-top:14px;padding:10px 12px;background:rgba(240,180,41,.07);border:1px solid rgba(240,180,41,.25);border-radius:6px;color:#FFD080;font-size:11px;">
+          <strong>Bottom line:</strong> This tool gives you a directionally accurate baseline.
+          Build in a 15-20% buffer over the calculated corpus for the real-world variability above,
+          and revisit your plan every 2-3 years as inputs change.
+        </div>
+      </div>
+    </details>
+  </div>
+</div>
+
+<footer>
+  Tax computed under India new tax regime (FY 2026-27) including 4% health &amp; education cess.<br>
+  Returns shown are nominal pre-tax estimates · Last updated for FY 2026-27 slabs.
+  <div class="fver">v4.5</div>
+</footer>
+
+<script>
+"use strict";
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   INSTRUMENT DEFINITIONS
+   FREE = user controls slider independently
+   SCSS = auto, always holds the remainder
+   taxRate = effective tax rate on income
+     from this instrument (for tax calc)
+     MF SWP: ~35% of redemption is gain,
+       taxed at 12.5% LTCG → effective 4.4%
+     PPF: fully exempt → 0%
+     Pension: ~40% taxable at slab (20% avg) → 8%
+     Rental: 70% taxable at slab (20% avg) → 14%
+     FD: 100% taxable at 20% avg slab → 20%
+     SCSS: 100% taxable at 20% avg slab → 20%
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+const FREE_INST = [
+  {id:'scss', name:'SCSS',      sub:'Senior Citizens SS', ret:8.2, color:'#E25CF0', taxRate:0.20,  taxLbl:'Govt guaranteed · zero market risk · interest at slab rate',  hardCap:3000000},
+  {id:'swp',  name:'MF SWP',    sub:'Equity / Balanced', ret:8.5, color:'#7B6FFF', taxRate:0.044, taxLbl:'Market-linked · LTCG 12.5% on gains only'},
+  {id:'fd',   name:'Bank FD',   sub:'Senior citizen',    ret:7.0, color:'#4A9EFF', taxRate:0.20,  taxLbl:'Interest 100% taxable at slab rate'},
+  {id:'ppf',  name:'PPF/Debt',  sub:'Debt / Gilt MF',   ret:7.2, color:'#5EE7B7', taxRate:0.0,   taxLbl:'PPF fully tax-free'},
+  {id:'rent', name:'Rental',    sub:'Property income',   ret:3.5, color:'#FF8C5A', taxRate:0.14,  taxLbl:'30% std deduction — 70% taxable'},
+];
+/* Pension is the auto-holder — absorbs remainder so total = 100% */
+const HOLDER_INST = {id:'pen', name:'Pension', sub:'Annuity plan', ret:6.0, color:'#F0B429', taxRate:0.08, taxLbl:'Partly taxable — commutation exempt'};
+
+/* allocation state — each FREE instrument has an independent value 0–100.
+   LOCKED state per instrument: true = slider frozen, value protected
+   from rebalance. User taps the lock icon on a card to toggle. */
+/* allocation state.
+   Phase model:
+     APPLIED=false → Phase 1 (free play). Pension stays at 0% regardless
+                     of the 5-card total. User experiments freely.
+     APPLIED=true  → Phase 2 (applied). Pension = 100 - sum(5 cards).
+                     Any slider move auto-reverts to Phase 1.
+   LOCKED per instrument: protects a card from being moved.            */
+let ALLOC   = {scss:10, swp:40, fd:25, ppf:10, rent:0};
+let LOCKED  = {scss:false, swp:false, fd:false, ppf:false, rent:false};
+let APPLIED = false;
+let WMODE   = 'fix';
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   ALLOCATION HELPERS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function freeTotal(){
+  return FREE_INST.reduce((s,i)=>s+ALLOC[i.id],0);
+}
+function holderAlloc(){
+  /* Phase 1 (not yet applied): Pension stays at 0%, no auto-overflow.
+     Phase 2 (applied): Pension takes the remainder of the 5 free cards.   */
+  if(!APPLIED) return 0;
+  return Math.max(0, 100 - freeTotal());
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   FORMAT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function fmt(n){
+  if(!n||n<0)return'₹0';
+  if(n>=1e7)return'₹'+(n/1e7).toFixed(2)+' Cr';
+  if(n>=1e5)return'₹'+(n/1e5).toFixed(1)+'L';
+  return'₹'+Math.round(n/1000)+'K';
+}
+/* Indian comma grouping: 30,00,000 (lakh/crore style) */
+function indianComma(n){
+  const num=Math.round(n);
+  const s=String(num);
+  if(s.length<=3) return s;
+  const last3=s.slice(-3);
+  let rest=s.slice(0,-3);
+  rest=rest.replace(/\B(?=(\d{2})+(?!\d))/g,',');
+  return rest+','+last3;
+}
+function fC(n){
+  if(n<=0)return'0';
+  if(n>=1e7)return(n/1e7).toFixed(2)+'Cr';
+  if(n>=1e5)return(n/1e5).toFixed(1)+'L';
+  return Math.round(n/1000)+'K';
+}
+function incLabel(v){
+  return v<1?'₹'+Math.round(v*100)+'K':'₹'+v.toFixed(1)+'L';
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   TAX — new regime FY2026-27 + 4% cess
+   Slabs: 0–4L=0%, 4–8L=5%, 8–12L=10%,
+   12–16L=15%, 16–20L=20%, 20–24L=25%, >24L=30%
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+const SLABS=[
+  {l:400000,r:0},{l:800000,r:.05},{l:1200000,r:.10},
+  {l:1600000,r:.15},{l:2000000,r:.20},{l:2400000,r:.25},
+  {l:Infinity,r:.30}
+];
+function calcTax(gross){
+  let t=0,p=0;
+  for(const s of SLABS){if(gross<=p)break;t+=(Math.min(gross,s.l)-p)*s.r;p=s.l;}
+  return t*1.04;
+}
+/*
+  grossUp: iterative fixed-point to find G where G - tax(G) = net
+  G_{n+1} = net + tax(G_n), converges in < 20 steps
+*/
+function grossUp(net){
+  let g=net*1.35;
+  for(let i=0;i<20;i++){const n2=net+calcTax(g);if(Math.abs(n2-g)<0.5){g=n2;break;}g=n2;}
+  return Math.round(g);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   BLENDED RETURN & EFFECTIVE TAX RATE
+   Both weighted by allocation %
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function blendRet(){
+  const holder=holderAlloc();
+  const tot=freeTotal()+holder; // always 100
+  if(!tot)return 0.07;
+  let r=FREE_INST.reduce((s,i)=>s+(i.ret/100)*(ALLOC[i.id]/tot),0);
+  r+=( HOLDER_INST.ret/100)*(holder/tot);
+  return r;
+}
+function blendTax(){
+  /* weighted effective tax rate across all instruments */
+  const holder=holderAlloc();
+  const tot=100;
+  let t=FREE_INST.reduce((s,i)=>s+i.taxRate*(ALLOC[i.id]/tot),0);
+  t+=HOLDER_INST.taxRate*(holder/tot);
+  return t;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CORPUS CALC
+   Inflation-adjusted (growing annuity PV):
+     PV = PMT × [1–((1+g)/(1+r))^n] / (r–g)
+   Fixed (level annuity, monthly compounding):
+     PV = PMT × [1–(1+r/12)^(–12n)] / (r/12)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function calcCorpus(moG,yrs,ret,inf){
+  if(WMODE==='fix'){
+    const mr=ret/12;
+    if(mr<1e-6)return moG*12*yrs;
+    return moG*(1-Math.pow(1+mr,-12*yrs))/mr;
+  }
+  const pmt=moG*12;
+  if(Math.abs(ret-inf)<1e-6)return pmt*yrs;
+  return pmt*(1-Math.pow((1+inf)/(1+ret),yrs))/(ret-inf);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   SIMULATE — month-by-month, aggregated
+   to annual rows for display.
+   This matches the corpus formulas exactly:
+     Fixed mode: monthly compounding
+     Inflation-adjusted: PMT grows monthly
+       at (1+inf)^(1/12) - 1, so that year-end
+       PMT equals moG*12*(1+inf)^(y-1) in total.
+   Returns annual rows: opening (start of year),
+   growth (total interest earned that year),
+   withdrawal (total drawn that year),
+   closing (end of year balance).
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function simulate(start,moG,yrs,ret,inf){
+  const rows=[];
+  let bal=start;
+  const mr=ret/12;
+  const mi=Math.pow(1+inf,1/12)-1;
+  /* monthly withdrawal: in inflation-adjusted mode, grows from moG by mi each month;
+     in fixed mode, stays at moG */
+  let mWd=moG;
+  for(let y=1;y<=yrs;y++){
+    const opening=bal;
+    let yearGrowth=0, yearWithdrawal=0;
+    let exhaustedThisYear=false;
+    for(let m=0;m<12;m++){
+      if(bal<=0){
+        exhaustedThisYear=true;
+        bal=0;
+        /* still try to withdraw — track shortfall */
+        yearWithdrawal+=mWd;
+        if(WMODE==='inf') mWd*=(1+mi);
+        continue;
+      }
+      const interest=bal*mr;
+      bal=bal+interest-mWd;
+      yearGrowth+=interest;
+      yearWithdrawal+=mWd;
+      if(WMODE==='inf') mWd*=(1+mi);
+      if(bal<0){exhaustedThisYear=true;}
+    }
+    rows.push({
+      y,
+      op:Math.round(opening),
+      gr:Math.round(yearGrowth),
+      wd:Math.round(yearWithdrawal),
+      cl:Math.round(Math.max(0,bal)),
+      exhausted:exhaustedThisYear
+    });
+    if(bal<0)bal=0;
+  }
+  return rows;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   BUILD INSTRUMENT GRID (once, at init)
+   Creates all 6 cards. Sliders use oninput
+   which fires on the live element — no
+   rebuild on slider move, preventing the
+   "element destroyed mid-drag" bug.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function buildGrid(){
+  const g=document.getElementById('igrid');
+  g.innerHTML='';
+
+  const corpus = window.__currentCorpus || 0;
+
+  /* free instrument cards (SCSS first) with slider + ₹ input + lock toggle */
+  FREE_INST.forEach(inst=>{
+    const alloc=ALLOC[inst.id];
+    const locked=LOCKED[inst.id];
+    const isZero=alloc===0;
+    const amount = corpus * alloc / 100;
+    const d=document.createElement('div');
+    d.id='ic-'+inst.id;
+    d.className='ic'+(isZero?' zero':'');
+    d.style.borderColor=isZero?'var(--bdr)':inst.color;
+    d.style.background=isZero?'transparent':`color-mix(in srgb,${inst.color} 8%,transparent)`;
+
+    const capLbl = inst.hardCap
+      ? `<div style="font-size:9px;color:#E29CF0;margin-top:2px;">Max ₹30L (govt limit)</div>`
+      : '';
+
+    d.innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div><span class="idot" style="background:${inst.color}"></span><span class="iname">${inst.name}</span></div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:11px;font-weight:700;color:${inst.color}">${inst.ret}%</span>
+          <button class="lock-btn ${locked?'locked':''}" id="lock-${inst.id}"
+            onclick="toggleLock('${inst.id}')" aria-label="Lock or unlock this allocation"
+            title="${locked?'Locked — tap to unlock':'Tap to lock this allocation'}">
+            ${locked?'🔒':'🔓'}
+          </button>
+        </div>
+      </div>
+      <div class="isub">${inst.sub}</div>
+      <div class="itax">${inst.taxLbl}</div>
+      ${capLbl}
+      <div class="ar">
+        <input type="range" id="sl-${inst.id}" min="0" max="100" step="0.5"
+          value="${alloc}" style="flex:1;" ${locked?'disabled':''}
+          oninput="handleSlider('${inst.id}',+this.value)">
+      </div>
+      <div class="entry-field-full ${locked?'disabled':''}">
+        <span class="entry-unit-pre">₹</span>
+        <input type="text" inputmode="numeric" id="amtinp-${inst.id}"
+          class="entry-input amt-input" value="${indianComma(amount)}" ${locked?'readonly':''}
+          style="color:${inst.color};"
+          onchange="setAllocAmount('${inst.id}',this.value)"
+          onfocus="this.select()">
+      </div>
+      <div class="amt-display" style="color:${inst.color};">
+        <span id="disp-pct-${inst.id}">${fmtPct(alloc)}%</span>
+        <span class="disp-sep">·</span>
+        <span id="disp-amt-${inst.id}">${fmt(amount)}</span>
+      </div>`;
+    g.appendChild(d);
+  });
+
+  /* Pension — auto-holder, no inputs */
+  const holder=holderAlloc();
+  const holderAmt = corpus * holder / 100;
+  const isZeroH=holder===0;
+  const sc=document.createElement('div');
+  sc.id='holder-card';
+  sc.className='ic'+(isZeroH?' zero':'');
+  sc.style.borderColor=isZeroH?'var(--bdr)':'rgba(240,180,41,.50)';
+  sc.style.background=isZeroH?'transparent':'color-mix(in srgb,#F0B429 8%,transparent)';
+  sc.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div><span class="idot" style="background:#F0B429"></span><span class="iname">${HOLDER_INST.name}</span></div>
+      <span style="font-size:11px;font-weight:700;color:#F0B429">${HOLDER_INST.ret}%</span>
+    </div>
+    <div class="isub">${HOLDER_INST.sub}</div>
+    <div class="itax">${HOLDER_INST.taxLbl}</div>
+    <div style="margin-top:4px;">
+      <span class="scss-badge" style="background:rgba(240,180,41,.15);color:#F0C060;">
+        ${APPLIED ? 'Holding remainder' : 'Tap Apply to fill'}
+      </span>
+    </div>
+    <div class="amt-display" id="amt-holder" style="color:#F0B429;margin-top:10px;">
+      <span id="disp-pct-holder">${fmtPct(holder)}%</span>
+      <span class="disp-sep">·</span>
+      <span id="disp-amt-holder">${fmt(holderAmt)}</span>
+    </div>`;
+  g.appendChild(sc);
+}
+
+/* format a percentage: drop trailing .0 but keep 1 decimal when needed */
+function fmtPct(p){
+  const r=Math.round(p*10)/10;
+  return Number.isInteger(r)?String(r):r.toFixed(1);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   UPDATE CARD VALUES IN-PLACE
+   Refreshes amounts, % inputs, slider
+   positions and holder card — without
+   rebuilding the DOM (preserves focus
+   and active drags).
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function updateAllCardAmounts(){
+  const corpus = window.__currentCorpus || 0;
+  const holder = holderAlloc();
+
+  FREE_INST.forEach(inst=>{
+    const ic=document.getElementById('ic-'+inst.id);
+    if(!ic) return;
+    const alloc=ALLOC[inst.id];
+    const isZ=alloc===0;
+    const amount = corpus * alloc / 100;
+
+    /* one-line summary: % · ₹amount */
+    const dispPct=document.getElementById('disp-pct-'+inst.id);
+    const dispAmt=document.getElementById('disp-amt-'+inst.id);
+    if(dispPct) dispPct.textContent=fmtPct(alloc)+'%';
+    if(dispAmt) dispAmt.textContent=fmt(amount);
+
+    /* sync the ₹ input with commas (only if not focused) */
+    const amtInp=document.getElementById('amtinp-'+inst.id);
+    if(amtInp && document.activeElement!==amtInp) amtInp.value=indianComma(amount);
+
+    /* sync the slider (only if not focused) */
+    const sl=document.getElementById('sl-'+inst.id);
+    if(sl && document.activeElement!==sl) sl.value=alloc;
+
+    ic.className='ic'+(isZ?' zero':'');
+    ic.style.borderColor=isZ?'var(--bdr)':inst.color;
+    ic.style.background=isZ?'transparent':`color-mix(in srgb,${inst.color} 8%,transparent)`;
+  });
+
+  const card=document.getElementById('holder-card');
+  const dispPctH=document.getElementById('disp-pct-holder');
+  const dispAmtH=document.getElementById('disp-amt-holder');
+  if(card && dispPctH && dispAmtH){
+    const isZ=holder===0;
+    dispPctH.textContent=fmtPct(holder)+'%';
+    dispAmtH.textContent=fmt(corpus * holder / 100);
+    card.className='ic'+(isZ?' zero':'');
+    card.style.borderColor=isZ?'var(--bdr)':'rgba(240,180,41,.50)';
+    card.style.background=isZ?'transparent':'color-mix(in srgb,#F0B429 8%,transparent)';
+  }
+
+  /* refresh allocation footer: total / remaining / apply button */
+  updateAllocFooter(corpus);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   ALLOC FOOTER: live total, remainder, apply-button state
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function updateAllocFooter(corpus){
+  const total = freeTotal();
+  const remain = Math.max(0, 100 - total);
+
+  const totalBadge = document.getElementById('alloc-total-badge');
+  const totalAmt   = document.getElementById('alloc-total-amt');
+  const remainBadge= document.getElementById('alloc-remain-badge');
+  const remainAmt  = document.getElementById('alloc-remain-amt');
+  const remainRow  = document.getElementById('alloc-remaining-row');
+  const applyBtn   = document.getElementById('apply-btn');
+
+  if(totalBadge) totalBadge.textContent = fmtPct(total)+'%';
+  if(totalAmt)   totalAmt.textContent   = fmt(corpus*total/100);
+  if(remainBadge)remainBadge.textContent= fmtPct(remain)+'%';
+  if(remainAmt)  remainAmt.textContent  = fmt(corpus*remain/100);
+
+  /* colour the total badge: green when within 100, red if (somehow) over */
+  if(totalBadge){
+    totalBadge.className = 'abadge' + (total > 100.01 ? ' abadge-warn' : '');
+  }
+
+  /* hide "Unallocated" row when total is already 100 (nothing left for pension) */
+  if(remainRow){
+    remainRow.style.display = remain < 0.05 ? 'none' : 'flex';
+  }
+
+  if(applyBtn){
+    if(APPLIED){
+      applyBtn.className='apply-btn applied';
+      applyBtn.textContent='✓ Applied — Pension holds '+fmtPct(remain)+'% ('+fmt(corpus*remain/100)+'). Tap any slider to edit.';
+      applyBtn.disabled=true;
+    } else {
+      applyBtn.className='apply-btn';
+      applyBtn.disabled = remain < 0.05;   /* nothing to flow */
+      applyBtn.textContent = remain < 0.05
+        ? 'Already at 100% — nothing for Pension'
+        : 'Apply → flow '+fmtPct(remain)+'% ('+fmt(corpus*remain/100)+') to Pension';
+    }
+  }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   ALLOCATION CAP HELPER
+   Returns the max % a given instrument can
+   take, considering:
+   (a) 100 - (sum of other free allocations)
+   (b) SCSS ₹30L hard cap → % of current corpus
+   Returns {max, amountCapHit}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CAP CALCULATION
+   Returns the max % the active instrument can take, given:
+   (a) 100 minus sum of LOCKED instruments (active can't push locked)
+   (b) SCSS ₹30L hard cap → % of current corpus
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CAP CALCULATION
+   Returns the max % the active instrument can take:
+   (a) 100 minus sum of ALL OTHER free-card allocations
+       (since no auto-rebalance, active fills only available headroom)
+   (b) SCSS ₹30L hard cap → % of current corpus
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function allocMax(id, requested){
+  const inst = FREE_INST.find(i=>i.id===id);
+  /* Active can fill 100% only if all OTHER free cards sum to 0 */
+  const otherTotal = FREE_INST
+    .filter(i=>i.id!==id)
+    .reduce((s,i)=>s+ALLOC[i.id],0);
+  const maxFromTotal = 100 - otherTotal;
+
+  let maxFromAmountCap = 100, amountCapHit=false;
+  if(inst && inst.hardCap){
+    const corpus = window.__currentCorpus || 0;
+    if(corpus > 0){
+      maxFromAmountCap = (inst.hardCap / corpus) * 100;
+      if(requested > maxFromAmountCap + 0.05) amountCapHit=true;
+    }
+  }
+  return { max: Math.min(maxFromTotal, maxFromAmountCap), amountCapHit };
+}
+
+function showWarn(amountCapHit, totalCapHit){
+  const warn=document.getElementById('warn-msg');
+  if(!warn) return;
+  if(amountCapHit){
+    warn.innerHTML='⚠ SCSS capped at ₹30L (government limit). Excess flows to Pension.';
+    warn.className='warn-msg show';
+  } else if(totalCapHit){
+    warn.innerHTML='⚠ Total can\'t exceed 100%. Unlock or reduce another instrument.';
+    warn.className='warn-msg show';
+  } else {
+    warn.className='warn-msg';
+  }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   REBALANCE OTHER UNLOCKED CARDS
+   When the user moves slider `activeId` to value `activeVal`,
+   the other unlocked free instruments must absorb whatever
+   headroom remains, distributed proportionally to their
+   current values. Locked cards never move. Pension (the
+   holder) gets whatever is left over after the 5 free.
+
+   Headroom for "others" = 100 - lockedSum - activeVal
+   - If headroom < 0: can't happen because allocMax already
+     clamped activeVal; safety clamp to 0 anyway.
+   - If sum of other-unlocked currently == 0: split equally.
+   - Otherwise: scale proportionally so they sum to headroom.
+
+   Returns nothing; mutates ALLOC for the other unlocked cards.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   PHASE 1 — NO AUTO-REBALANCE
+   The 5 free cards move independently. The 5-card total
+   can be anywhere from 0% to 100%. Pension stays at 0%
+   until the user taps "Apply allocation" (Phase 2).
+
+   The allocMax cap is just: active card cannot push the
+   5-card sum above 100% (otherwise we'd be allocating
+   more than the corpus). Locked cards are protected.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/* No rebalanceOthers function in Phase 1. Each slider is independent. */
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   TOGGLE LOCK on a card
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function toggleLock(id){
+  LOCKED[id] = !LOCKED[id];
+  buildGrid();
+  refreshEffTax();
+  showWarn(false, false);
+  render();
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   APPLY ALLOCATION — Phase 1 → Phase 2
+   Pension takes the remainder (100 - sum of 5).
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function applyAllocation(){
+  APPLIED = true;
+  buildGrid();          /* refresh apply-button text + visual state */
+  render();
+  updateAllCardAmounts();
+  refreshEffTax();
+  showWarn(false, false);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   REVERT TO PHASE 1
+   Triggered automatically when any slider/input
+   changes after Apply.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function revertToDraft(){
+  if(!APPLIED) return;
+  APPLIED = false;
+  buildGrid();          /* refresh button text */
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   SLIDER MOVE
+   If the card is locked, ignore (slider is also
+   disabled in DOM, but guard defensively).
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function handleSlider(id, rawVal){
+  if(LOCKED[id]) return;
+  revertToDraft();
+  const {max, amountCapHit}=allocMax(id, rawVal);
+  const clamped=Math.max(0, Math.min(max, rawVal));
+  ALLOC[id]=clamped;
+
+  const sl=document.getElementById('sl-'+id);
+  if(sl && +sl.value!==clamped) sl.value=clamped;
+
+  showWarn(amountCapHit, !amountCapHit && rawVal>clamped+0.01);
+  render();
+  updateAllCardAmounts();
+  refreshEffTax();
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   DIRECT ₹ AMOUNT ENTRY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function setAllocAmount(id, rawVal){
+  if(LOCKED[id]) return;
+  revertToDraft();
+  const corpus = window.__currentCorpus || 0;
+  let amt=parseFloat(String(rawVal).replace(/[, ]/g,''));
+  if(isNaN(amt)||amt<0) amt=0;
+  let pct = corpus>0 ? (amt/corpus)*100 : 0;
+  const {max, amountCapHit}=allocMax(id, pct);
+  const clamped=Math.max(0, Math.min(max, pct));
+  ALLOC[id]=clamped;
+  showWarn(amountCapHit, !amountCapHit && pct>clamped+0.01);
+  render();
+  updateAllCardAmounts();
+  refreshEffTax();
+}
+
+function refreshEffTax(){
+  const effTax=blendTax();
+  const el=document.getElementById('eff-tax-val');
+  if(el) el.textContent=(effTax*100).toFixed(1)+'%';
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   INPUT PANEL OPEN / CLOSE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function updatePills(){
+  const incL=+document.getElementById('s-inc').value;
+  const year=document.getElementById('s-year').value;
+  const lon=document.getElementById('s-lon').value;
+  const inf=parseFloat(document.getElementById('s-inf').value).toFixed(1);
+  const blend=(blendRet()*100).toFixed(1);
+  const effTax=(blendTax()*100).toFixed(1);
+  const pills=[
+    {label:incLabel(incL)+'/mo',hi:true},
+    {label:'Retire '+year},
+    {label:lon+' yrs'},
+    {label:inf+'% inflation'},
+    {label:'Blend '+blend+'%',hi:true},
+    {label:'Eff. tax '+effTax+'%'},
+  ];
+  document.getElementById('summary-pills').innerHTML=
+    pills.map(p=>`<span class="pill${p.hi?' hi':''}">${p.label}</span>`).join('');
+}
+function openInputs(){
+  document.getElementById('collapsed-view').style.display='none';
+  document.getElementById('expanded-view').classList.add('open');
+}
+function closeInputs(){
+  updatePills();
+  document.getElementById('expanded-view').classList.remove('open');
+  document.getElementById('collapsed-view').style.display='flex';
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   WITHDRAWAL MODE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function setWmode(m){
+  WMODE=m;
+  document.getElementById('btn-fix').className ='bsb'+(m==='fix' ?' on':'');
+  document.getElementById('btn-inf').className ='bsb'+(m==='inf'?' on':'');
+  render();
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   TABS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function showTab(t){
+  ['corpus','growth','table'].forEach(x=>{
+    document.getElementById('p-'+x).style.display=x===t?'block':'none';
+    document.getElementById('t-'+x).classList.toggle('on',x===t);
+  });
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   SVG UTILS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+const NS='http://www.w3.org/2000/svg';
+function el(tag,attrs){const e=document.createElementNS(NS,tag);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);return e;}
+function tx(svg,x,y,s,ex={}){const t=el('text',{x,y,'font-family':'DM Sans,sans-serif','font-size':'10','fill':'#8898AA',...ex});t.textContent=s;svg.appendChild(t);}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CORPUS CHART
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function drawCorpus(rows,corpus,retY){
+  const svg=document.getElementById('c-corpus');svg.innerHTML='';
+  const W=360,H=230,PL=58,PR=14,PT=18,PB=36;
+  const CW=W-PL-PR,CH=H-PT-PB;
+  const maxV=Math.max(corpus,...rows.map(r=>r.cl))*1.08;
+  const ys=v=>PT+CH-Math.max(0,(v/maxV)*CH);
+  const xs=i=>PL+(i/Math.max(rows.length-1,1))*CW;
+
+  /* grid */
+  [0,.25,.5,.75,1].forEach(f=>{
+    const y=PT+CH*(1-f);
+    svg.appendChild(el('line',{x1:PL,x2:W-PR,y1:y,y2:y,stroke:'#1E2A3A','stroke-width':'0.5'}));
+    tx(svg,2,y+3,fC(maxV*f),{'text-anchor':'start','font-size':'9','fill':'#5A6A7A'});
+  });
+
+  const xi=rows.findIndex(r=>r.exhausted);
+
+  /* area */
+  let d=`M${xs(0)},${ys(rows[0].cl)}`;
+  rows.slice(1).forEach((r,i)=>{d+=` L${xs(i+1)},${ys(r.cl)}`;});
+  d+=` L${xs(rows.length-1)},${PT+CH} L${PL},${PT+CH} Z`;
+  svg.appendChild(el('path',{d,fill:'rgba(123,111,255,.08)'}));
+
+  /* red zone */
+  if(xi>=0){
+    const rx=xs(xi),rw=Math.max(2,xs(rows.length-1)-rx);
+    svg.appendChild(el('rect',{x:rx,y:PT,width:rw,height:CH,fill:'rgba(255,92,92,.07)'}));
+    svg.appendChild(el('line',{x1:rx,x2:rx,y1:PT,y2:PT+CH,stroke:'#FF5C5C','stroke-width':'1.5','stroke-dasharray':'4,3'}));
+    tx(svg,rx+3,PT+11,'Exhausted',{'font-size':'8','fill':'#FF6666'});
+  }
+
+  /* line */
+  const pts=rows.map((r,i)=>`${xs(i)},${ys(r.cl)}`).join(' ');
+  svg.appendChild(el('polyline',{points:pts,fill:'none',stroke:'#7B6FFF','stroke-width':'2.5'}));
+  svg.appendChild(el('circle',{cx:xs(0),cy:ys(rows[0].cl),r:'4.5',fill:'#7B6FFF',stroke:'#0E1117','stroke-width':'2'}));
+
+  /* x labels */
+  rows.forEach((_,i)=>{
+    if(i===0||(i+1)%5===0||i===rows.length-1)
+      tx(svg,xs(i),H-5,''+(retY+i),{'text-anchor':'middle','font-size':'9','fill':'#5A6A7A'});
+  });
+
+  document.getElementById('l-corpus').innerHTML=`
+    <span class="li"><span class="ld" style="background:#7B6FFF"></span>Corpus remaining</span>
+    ${xi>=0?'<span class="li"><span class="ld" style="background:#FF5C5C"></span>Exhausted zone</span>':''}`;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   GROWTH CHART
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function drawGrowth(rows,retY){
+  const svg=document.getElementById('c-growth');svg.innerHTML='';
+  const W=360,H=220,PL=54,PR=14,PT=14,PB=32;
+  const CW=W-PL-PR,CH=H-PT-PB;
+  const maxV=Math.max(...rows.map(r=>Math.max(r.gr,r.wd)))*1.12;
+  const ys=v=>PT+CH-Math.max(0,v/maxV*CH);
+  const xs=i=>PL+(i/Math.max(rows.length-1,1))*CW;
+  const bw=Math.max(2,Math.floor(CW/rows.length)-3);
+
+  [0,.25,.5,.75,1].forEach(f=>{
+    const y=PT+CH*(1-f);
+    svg.appendChild(el('line',{x1:PL,x2:W-PR,y1:y,y2:y,stroke:'#1E2A3A','stroke-width':'0.5'}));
+    tx(svg,2,y+3,fC(maxV*f),{'text-anchor':'start','font-size':'9','fill':'#5A6A7A'});
+  });
+
+  rows.forEach((r,i)=>{
+    const cx=xs(i);
+    const gh=Math.max(1,CH-(ys(r.gr)-PT));
+    svg.appendChild(el('rect',{x:cx-bw,y:ys(r.gr),width:bw,height:gh,fill:'#5EE7B7',opacity:'.65'}));
+    const wh=Math.max(1,CH-(ys(r.wd)-PT));
+    svg.appendChild(el('rect',{x:cx+1,y:ys(r.wd),width:bw,height:wh,fill:r.wd>r.gr?'#FF5C5C':'#F0B429',opacity:'.82'}));
+    if(i===0||(i+1)%5===0||i===rows.length-1)
+      tx(svg,cx,H-5,''+(retY+i),{'text-anchor':'middle','font-size':'9','fill':'#5A6A7A'});
+  });
+
+  document.getElementById('l-growth').innerHTML=`
+    <span class="li"><span class="ld" style="background:#5EE7B7"></span>Portfolio growth</span>
+    <span class="li"><span class="ld" style="background:#F0B429"></span>Withdrawal (within growth)</span>
+    <span class="li"><span class="ld" style="background:#FF5C5C"></span>Withdrawal exceeds growth</span>`;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   YEAR TABLE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function buildTable(rows,retY){
+  const xi=rows.findIndex(r=>r.exhausted);
+  let h='<thead><tr><th>Year</th><th>Opening</th><th>Growth</th><th>Withdrawal</th><th>Closing</th></tr></thead><tbody>';
+  rows.forEach((r,i)=>{
+    const cls=r.exhausted?'xrow':(xi===i+1?'lastok':'');
+    h+=`<tr class="${cls}"><td>${retY+i}</td><td>${fC(r.op)}</td>
+      <td style="color:#5EE7B7">+${fC(r.gr)}</td>
+      <td style="color:#F0B429">–${fC(r.wd)}</td>
+      <td>${r.exhausted?'<span style="color:#FFB0B0">Exhausted</span>':fC(r.cl)}</td></tr>`;
+  });
+  document.getElementById('ytbl').innerHTML=h+'</tbody>';
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   UPDATE CORPUS CARD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function updateCorpusCard(corpus,P,ret,rows){
+  document.getElementById('cc-val').textContent=fmt(corpus);
+  const xi=rows.findIndex(r=>r.exhausted);
+  const modeNote=WMODE==='inf'
+    ?'Inflation-adjusted withdrawals · grows '+( +document.getElementById('s-inf').value).toFixed(1)+'% yearly'
+    :'Fixed withdrawals · same amount every month';
+  document.getElementById('cc-sub').textContent=modeNote;
+  document.getElementById('cc-gross').textContent=fmt(P.moGross)+'/mo';
+  document.getElementById('cc-ret').textContent=(ret*100).toFixed(1)+'% p.a.';
+  /* Show portfolio tax (used in calc) AND slab tax (reference), with a tooltip explaining */
+  const portfolioTaxAmt = P.annGross - P.annNet;
+  const slabPct = (P.slabTaxPct*100).toFixed(1);
+  const portfolioPct = (P.portfolioTaxRate*100).toFixed(1);
+  document.getElementById('cc-tax').innerHTML =
+    fmt(Math.round(portfolioTaxAmt))+'/yr ('+portfolioPct+'%) ' +
+    '<span class="info-tip" tabindex="0" aria-label="Tax explanation">ⓘ' +
+      '<span class="tip-bubble">' +
+        '<strong>Two tax rates explained:</strong><br><br>' +
+        '<b>Portfolio tax rate ('+portfolioPct+'%)</b> — used in this corpus calculation. ' +
+        'It is the weighted average of how each instrument is taxed (MF SWP ~4.4%, FD ~20%, PPF 0%, etc.) ' +
+        'based on your allocation.<br><br>' +
+        '<b>Slab tax on this gross ('+slabPct+'%)</b> — what you would pay if all of this income came from one fully-taxable source ' +
+        '(progressive India new regime + 4% cess). Shown only for reference.<br><br>' +
+        'The two differ because your portfolio includes tax-efficient instruments. ' +
+        'The lower portfolio rate is the more accurate gross-up.' +
+      '</span>' +
+    '</span>';
+  const statusEl=document.getElementById('cc-status');
+  if(xi>=0){
+    statusEl.innerHTML='<span class="status-pill status-warn">⚠ Exhausted in '+(P.retYear+xi)+'</span>';
+  } else {
+    statusEl.innerHTML='<span class="status-pill status-safe">✓ Lasts all '+P.years+' years</span>';
+  }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   GET PARAMS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function getP(){
+  const retYear=+document.getElementById('s-year').value;
+  const incLakh=+document.getElementById('s-inc').value;
+  const years=+document.getElementById('s-lon').value;
+  const inf=+document.getElementById('s-inf').value/100;
+  const ytr=Math.max(0,retYear-new Date().getFullYear());
+  /* net monthly at retirement = today's income inflated to retirement year */
+  const moNetAtRet=Math.round(incLakh*1e5*Math.pow(1+inf,ytr));
+
+  /*
+    GROSS-UP CHOICE — v4.2.1
+    We use the portfolio's blended effective tax rate (T) to gross up,
+    not progressive slab tax. This reflects the actual mix of taxable
+    vs efficient instruments in the user's portfolio.
+       moGross × (1 - T) = moNet
+       → moGross = moNet / (1 - T)
+    The progressive slab tax is still computed separately and shown
+    as "Income tax on withdrawal" for transparency.
+  */
+  const T = blendTax();                            // portfolio blended tax rate
+  const annNet = moNetAtRet * 12;
+  const annGross = Math.round(annNet / Math.max(0.01, 1 - T));
+  const moGross = Math.round(annGross / 12);
+
+  /* slab tax shown for comparison only (not used in gross-up) */
+  const slabTaxAnnual = calcTax(annGross);
+  const slabTaxPct = annGross > 0 ? slabTaxAnnual / annGross : 0;
+
+  return {
+    retYear, incLakh, years, inf, ytr,
+    moNetAtRet, annNet, annGross, moGross,
+    portfolioTaxRate: T,
+    slabTaxAnnual, slabTaxPct,
+  };
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   MAIN RENDER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function render(){
+  const P=getP();
+  const ret=blendRet();
+  const corpus=calcCorpus(P.moGross,P.years,ret,P.inf);
+  /* store corpus globally so card amount helpers can read it */
+  window.__currentCorpus = corpus;
+  const rows=simulate(corpus,P.moGross,P.years,ret,P.inf);
+  updateCorpusCard(corpus,P,ret,rows);
+  drawCorpus(rows,corpus,P.retYear);
+  drawGrowth(rows,P.retYear);
+  buildTable(rows,P.retYear);
+  /* keep card amounts + effective tax in sync on every render */
+  updateAllCardAmounts();
+  refreshEffTax();
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   SLIDER LISTENERS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+document.getElementById('s-inc').addEventListener('input',function(){
+  const v=parseFloat(this.value);
+  document.getElementById('v-inc').innerHTML=incLabel(v)+'<small>per month</small>';
+  render();
+});
+document.getElementById('s-year').addEventListener('input',function(){
+  document.getElementById('v-year').textContent=this.value; render();
+});
+document.getElementById('s-lon').addEventListener('input',function(){
+  document.getElementById('v-lon').innerHTML=this.value+'<small>yrs</small>'; render();
+});
+document.getElementById('s-inf').addEventListener('input',function(){
+  document.getElementById('v-inf').innerHTML=parseFloat(this.value).toFixed(1)+'<small>%</small>'; render();
+});
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   INIT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+buildGrid();
+updatePills();
+render();
+</script>
+</body>
+</html>
